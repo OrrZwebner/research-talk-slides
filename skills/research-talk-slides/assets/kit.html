@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide Kit</title>
+<!--
+  ============================================================================
+  RESEARCH-TALK SLIDE KIT (HTML)   [FIXED-CANVAS version]
+  ============================================================================
+  RESPONSIVE STRATEGY (so the slide looks IDENTICAL on every screen):
+    Every slide is authored inside a FIXED 1280x720 "#stage". On load/resize
+    the stage is scaled uniformly with transform:scale() to fit the viewport,
+    centered (letterbox / pillarbox). Content NEVER re-layouts — it just scales.
+    This is the reveal.js / impress.js / Google-Slides approach.
+    => Inside the stage use cqw/cqh (1cqw = 12.8px, 1cqh = 7.2px) or fixed px.
+       DO NOT use vw / vh / dvh inside a slide — they read the real viewport and
+       would double-scale. The stage is a CSS container, so cqw/cqh resolve
+       against the fixed 1280x720 design, i.e. they are constant.
+
+  MASTER: white background, one large top-left title, two corner LOGO SLOTS
+  (hidden until you set them, see "LOGOS" below), content kept above the
+  bottom ~100px.
+
+  LOGOS (hidden by default). Either
+    (a) set CSS variables in a <style> after this one:
+          :root{ --logo-left:url("data:image/png;base64,...");
+                 --logo-right:url("logo-right.png"); }
+    (b) or replace a slot <div> below with
+          <img class="brand brand-left" alt="..." src="data:image/png;base64,...">
+  Embed logos at >= 2x their display width (left slot 192px -> ~400-1000px
+  source) or they look blurry on a projector. Add class="show-logo-slots" to
+  <body> to outline the empty slots while laying out a slide.
+
+  HOW SLIDES WORK
+    * A slide is  <section class="slide" data-section="NN" data-title="...">.
+    * Non-.step content shows on entry; .step elements reveal one per advance
+      (presenter build). Group elements into one step with data-step="k".
+    * Speaker notes: <aside class="notes-src">...</aside> inside the slide.
+  NAV  : →/click/next = reveal next step else next slide; ←/prev = reverse.
+         O = section map · N = notes · F = fullscreen · dots = jump.
+  ANIM HOOK: on reveal a 'kit:step' event fires on document (detail{slide,index,els});
+         'kit:unstep' on reverse. Prefer pure-CSS reveals (animate on .step.shown).
+  DRILL-DOWN: a component with data-goto="ID" opens the slide with data-id="ID";
+         '‹ back' (or Backspace) returns to the overview, fully revealed.
+  ============================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Non-Latin scripts: append &family=Noto+Sans+<Script>:wght@400;600 (the Noto family for your script) to the URL above. -->
+<style>
+:root{
+  --ink:#1a1a1a; --paper:#ffffff; --panel:#ffffff;   /* master: white bg */
+  --en:#1b2a4a; --sa:#3b7dd8; --bo:#e8833a; --gr:#5a8f69;
+  --line:#e2e0d8; --muted:#5e6470; --tint:#eef2fb;
+  --title:'Open Sans',sans-serif;
+  --display:'Space Grotesk',sans-serif;
+  --serif:'Spectral',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+  --logo-left:none; --logo-right:none;               /* logo slots: hidden until set */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#fff;color:var(--ink);font-family:var(--display)}
+
+/* ---- fixed design canvas, scaled to fit ---- */
+#stage{position:absolute;top:0;left:0;width:1280px;height:720px;background:#fff;
+  container-type:size;            /* enables cqw/cqh for descendants (constant) */
+  transform-origin:top left;overflow:hidden}
+
+/* ---- progress + side dots ---- */
+.progress-bar{position:absolute;top:0;left:0;height:3px;width:0;background:var(--bo);z-index:60;transition:width .4s ease}
+.nav-dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:55}
+.nav-dots button{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;cursor:pointer;padding:0;opacity:.45;transition:.25s}
+.nav-dots button.active{background:var(--ink);opacity:1;transform:scale(1.25)}
+
+/* ---- slides ---- */
+.slide{position:absolute;inset:0;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding:52px 64px 100px;          /* bottom clears corner logos */
+  opacity:0;visibility:hidden;transition:opacity .5s ease;pointer-events:none}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto}
+.notes-src{display:none}
+.stitle,h1.title,h2.title{font-family:var(--title);font-weight:700;color:var(--ink);
+  font-size:48px;line-height:1.05;letter-spacing:-.01em;margin:0 0 26px}
+.kicker{font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--sa);margin-bottom:.7em}
+h1{font-size:64px;line-height:1.04;font-weight:700;letter-spacing:-.015em;max-width:16ch}
+h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
+.sub{font-family:var(--serif);font-size:20px;color:var(--muted);max-width:62ch;margin-top:.8em;line-height:1.5}
+
+/* ---- step reveal ---- */
+.step{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;will-change:opacity,transform}
+.step.shown{opacity:1;transform:none}
+.step:not(.shown){pointer-events:none}   /* unrevealed components are not clickable */
+@media (prefers-reduced-motion:reduce){.step{transition:none}}
+
+/* ---- panels / counters / chips ---- */
+.arena{display:flex;flex-direction:column;gap:14px;margin-top:12px}
+.lang,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 2px 10px rgba(20,30,50,.06);
+  padding:14px 18px;display:flex;gap:20px;align-items:center;position:relative;overflow:hidden}
+.lang.en,.panel.en{border-left:5px solid var(--en)} .lang.sa,.panel.sa{border-left:5px solid var(--sa)}
+.lang.bo,.panel.bo{border-left:5px solid var(--bo)} .panel.gr{border-left:5px solid var(--gr)}
+.meta{flex:none;width:140px}
+.name{font-weight:700;font-size:19px}
+.en .name{color:var(--en)} .sa .name{color:var(--sa)} .bo .name{color:var(--bo)} .gr .name{color:var(--gr)}
+.counter{font-family:var(--mono);font-size:50px;font-weight:600;line-height:1}
+.en .counter{color:var(--en)} .sa .counter{color:var(--sa)} .bo .counter{color:var(--bo)} .gr .counter{color:var(--gr)}
+.counter small{font-size:.34em;letter-spacing:.1em;color:var(--muted);display:block;font-weight:400;margin-top:.4em}
+.stage-cell{flex:1;min-width:0;align-self:stretch;display:flex;align-items:center;overflow:hidden}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-content:center;max-height:100%}
+.chip{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;
+  padding:4px 9px;background:#e9edf4;border:1px solid #d6dde8;font-family:var(--mono);
+  font-size:16px;color:var(--en)}
+.chip.pop{opacity:0;transform:scale(.6) translateY(8px);animation:pop .42s cubic-bezier(.2,1.5,.4,1) forwards}
+.chip.sa{background:#eaf2fd;border-color:#cfe0fa;color:var(--sa)}
+.chip.bo{background:#fdf0e5;border-color:#f6d9bf;color:var(--bo)}
+@keyframes pop{0%{opacity:0;transform:scale(.55) translateY(10px)}60%{opacity:1}100%{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ---- buttons / cards ---- */
+.btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1.5px solid var(--ink);background:var(--ink);
+  color:#fff;padding:9px 16px;border-radius:8px;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.note{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cards{display:flex;gap:24px;margin-top:30px;flex-wrap:wrap}
+.card{flex:1;min-width:190px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 10px rgba(20,30,50,.06);padding:24px}
+.card .ci{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--sa);margin-bottom:.7em}
+.card h3{font-size:23px;line-height:1.15;margin-bottom:.5em}
+.card p{font-family:var(--serif);font-size:16px;color:var(--muted);line-height:1.45}
+
+/* ---- master brand symbols (inside the canvas, fixed design coords) ---- */
+.brand{position:absolute;bottom:16px;z-index:40;pointer-events:none;height:auto}
+.brand-left{left:24px;width:192px}
+.brand-right{right:24px;width:132px}
+.logo-slot{height:64px;background-repeat:no-repeat;background-size:contain}
+.logo-slot.brand-left{background-image:var(--logo-left);background-position:left bottom}
+.logo-slot.brand-right{background-image:var(--logo-right);background-position:right bottom}
+.show-logo-slots .logo-slot{outline:1.5px dashed #c9ced8;outline-offset:2px;border-radius:6px}
+
+/* ---- chrome: hint, copy ---- */
+#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;color:var(--muted);font-size:11.5px;z-index:40;font-family:var(--mono);opacity:.7;white-space:nowrap}
+#hint b{color:var(--bo)}
+.copybtn{background:var(--panel);border:1px solid var(--line);border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--muted);padding:2px 7px}
+.copybtn:hover{border-color:var(--sa);color:var(--sa)}
+
+/* ---- chrome: section map ---- */
+#overview{position:absolute;inset:0;background:rgba(255,255,255,.995);z-index:70;display:none;padding:48px;overflow:auto}
+#overview.show{display:block}
+#overview h2{font-size:24px;margin-bottom:22px;font-weight:700}
+#overview h2 span{color:var(--sa)}
+.ovgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ovitem{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);cursor:pointer;transition:.2s}
+.ovitem:hover{border-color:var(--sa);box-shadow:0 6px 22px rgba(59,125,216,.12)}
+.ovitem .ek{color:var(--sa);font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.ovitem .tt{font-size:16px;margin-top:5px;line-height:1.25;font-weight:600}
+
+/* ---- chrome: notes ---- */
+#notes{position:absolute;left:0;right:0;bottom:0;max-height:40%;overflow:auto;background:var(--panel);
+  color:var(--ink);border-top:3px solid var(--bo);padding:18px 24px;font-family:var(--serif);
+  font-size:15px;line-height:1.55;display:none;z-index:65;white-space:pre-wrap}
+#notes.show{display:block}
+#notes .nlabel{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--bo);margin-bottom:8px}
+
+/* ---- drill-down: clickable components + Back ---- */
+[data-goto]{cursor:pointer}
+#back{position:absolute;right:22px;top:16px;z-index:55;font-family:var(--mono);font-size:13px;
+  color:var(--ink);background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;
+  padding:7px 13px;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(20,30,50,.1)}
+#back.show{display:block}
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Master logo slots (every slide). Hidden until --logo-left / --logo-right are set,
+       or replace a <div> with <img class="brand brand-left" src="..."> (see header). -->
+  <div class="brand brand-left logo-slot" data-logo="left"></div>
+  <div class="brand brand-right logo-slot" data-logo="right"></div>
+  <div class="progress-bar" id="prog"></div>
+  <nav class="nav-dots" id="dots"></nav>
+  <div id="hint">← → <b>reveal</b> / navigate · O map · N notes · F fullscreen</div>
+  <div id="overview"><h2><span>Jump to a slide</span></h2><div class="ovgrid" id="ovgrid"></div></div>
+  <div id="notes"><div class="nlabel">Speaker notes</div><div id="notesbody"></div></div>
+  <div id="back">‹ back</div>
+
+<!-- ============================ SLIDES:START ============================ -->
+
+<!-- EXAMPLE slide. Replace everything between SLIDES markers. -->
+<section class="slide" data-section="00" data-title="Kit demo">
+  <h2 class="title">This is the shared shell.</h2>
+  <p class="sub">Fixed 1280×720 canvas, scaled to any screen. White master · top-left title · logo slots below.</p>
+  <div class="cards">
+    <div class="card step"><div class="ci">Step 1</div><h3>Appears on 1st advance</h3><p>Press → or click.</p></div>
+    <div class="card step"><div class="ci">Step 2</div><h3>Appears on 2nd advance</h3><p>Then it moves to the next slide.</p></div>
+  </div>
+  <aside class="notes-src">Example speaker notes. Press N to toggle.</aside>
+</section>
+
+<!-- ============================ SLIDES:END ============================== -->
+</div><!-- /#stage -->
+
+<script>
+/* ===== fit fixed canvas to viewport (uniform scale + letterbox) ===== */
+const STAGE_W=1280, STAGE_H=720;
+const stage=document.getElementById('stage');
+function fit(){
+  const s=Math.min(innerWidth/STAGE_W, innerHeight/STAGE_H);
+  const x=(innerWidth-STAGE_W*s)/2, y=(innerHeight-STAGE_H*s)/2;
+  stage.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+}
+addEventListener('resize',fit); fit();
+
+/* ======================= KIT ENGINE ======================= */
+const slides=[...stage.querySelectorAll('.slide')];
+const dotsWrap=document.getElementById('dots');
+const prog=document.getElementById('prog');
+const ov=document.getElementById('overview');
+const ovgrid=document.getElementById('ovgrid');
+const notesEl=document.getElementById('notes');
+const notesBody=document.getElementById('notesbody');
+let cur=0;
+
+slides.forEach((s,i)=>{ const b=document.createElement('button');
+  b.title=(s.dataset.title||('Slide '+(i+1))); b.onclick=()=>go(i,false); dotsWrap.appendChild(b); });
+const dots=[...dotsWrap.children];
+if(slides.length<2) dotsWrap.style.display='none';   /* no lone dot on a single slide */
+
+slides.forEach((s,i)=>{ const b=document.createElement('button'); b.className='ovitem';
+  b.innerHTML=`<div class="ek">${s.dataset.section?('§ '+s.dataset.section):('Slide '+(i+1))}</div><div class="tt">${s.dataset.title||''}</div>`;
+  b.onclick=()=>{ ov.classList.remove('show'); go(i,false); }; ovgrid.appendChild(b); });
+
+function stepsOf(slide){ return [...slide.querySelectorAll('.step')]; }
+function buckets(slide){
+  const els=stepsOf(slide); const byKey={}; const groups=[];
+  els.forEach(el=>{ const k=el.dataset.step;
+    if(k!==undefined){ (byKey[k]=byKey[k]||{els:[]}).els.push(el); }
+    else groups.push({els:[el]}); });
+  const all=[...Object.values(byKey),...groups];
+  all.forEach(g=>g.pos=Math.min(...g.els.map(e=>els.indexOf(e))));
+  all.sort((a,b)=>a.pos-b.pos); return all;
+}
+function revealStep(slide){ const bs=buckets(slide); const p=slide._p||0; if(p>=bs.length) return false;
+  bs[p].els.forEach(el=>{ el.classList.add('shown'); el.dispatchEvent(new CustomEvent('step:show',{bubbles:true,detail:{index:p}})); });
+  document.dispatchEvent(new CustomEvent('kit:step',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p+1; return true; }
+function hideStep(slide){ const bs=buckets(slide); let p=slide._p||0; if(p<=0) return false; p--;
+  bs[p].els.forEach(el=>{ el.classList.remove('shown'); el.dispatchEvent(new CustomEvent('step:hide',{bubbles:true,detail:{index:p}})); });
+  document.dispatchEvent(new CustomEvent('kit:unstep',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p; return true; }
+function resetSteps(slide,all){ const bs=buckets(slide); bs.forEach(g=>g.els.forEach(el=>el.classList.toggle('shown',!!all))); slide._p=all?bs.length:0; }
+
+function go(n,all){ if(n<0||n>=slides.length) return;
+  slides[cur].classList.remove('active'); if(dots[cur])dots[cur].classList.remove('active');
+  cur=n; resetSteps(slides[cur],all);
+  slides[cur].classList.add('active'); if(dots[cur])dots[cur].classList.add('active');
+  prog.style.width=(slides.length<2?100:(cur/(slides.length-1)*100))+'%';
+  if(notesEl.classList.contains('show')) renderNotes(); }
+function advance(){ if(revealStep(slides[cur])) return; if(cur<slides.length-1) go(cur+1,false); }
+function back(){ if(hideStep(slides[cur])) return; if(cur>0) go(cur-1,true); }
+function renderNotes(){ const s=slides[cur].querySelector('.notes-src'); notesBody.textContent=s?s.textContent.trim():'(no notes)'; }
+
+var _n=document.getElementById('next'); if(_n)_n.onclick=advance;
+var _p=document.getElementById('prev'); if(_p)_p.onclick=back;
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();advance();}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();back();}
+  else if(e.key.toLowerCase()==='o'){ov.classList.toggle('show');}
+  else if(e.key.toLowerCase()==='n'){notesEl.classList.toggle('show');renderNotes();}
+  else if(e.key.toLowerCase()==='f'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+  else if(e.key==='Escape'){ov.classList.remove('show');}
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('#nav,#dots,#overview,#notes,#back,.btn,button,a,input,select,textarea,[data-noadvance],[data-goto]')) return;
+  advance();
+});
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('.copybtn'); if(!b) return;
+  const host=b.closest('[data-copy]'); if(!host) return;
+  if(navigator.clipboard) navigator.clipboard.writeText(host.getAttribute('data-copy')).catch(()=>{});
+  const o=b.textContent; b.textContent='✓'; setTimeout(()=>b.textContent=o,1000); });
+let tsx=0; addEventListener('touchstart',e=>tsx=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tsx; if(Math.abs(dx)>50){dx<0?advance():back();}},{passive:true});
+
+/* ----- drill-down navigation ----- */
+let backStack=[], _keepStack=false;
+const backEl=document.getElementById('back');
+function updateBack(){ backEl.classList.toggle('show', backStack.length>0); }
+const _origGo=go;
+go=function(n,a){ if(!_keepStack) backStack=[]; _keepStack=false; _origGo(n,a); updateBack(); };
+function idIndex(id){ return slides.findIndex(s=>s.dataset.id===id); }
+function goToId(id){ const i=idIndex(id); if(i<0) return; backStack.push(cur); _keepStack=true; go(i,false); }
+function drillBack(){ if(!backStack.length) return false; const i=backStack.pop(); _keepStack=true; go(i,true); return true; }
+backEl.onclick=drillBack;
+document.addEventListener('click',e=>{ const g=e.target.closest&&e.target.closest('[data-goto]'); if(!g) return; e.stopPropagation(); goToId(g.getAttribute('data-goto')); });
+document.addEventListener('keydown',e=>{ if(e.key==='Backspace'){ if(drillBack()) e.preventDefault(); } });
+
+go(0,false);
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<!-- Synthetic fixture: data-goto points at an id no slide declares. Expected: exactly 1 warning naming "nowhere". -->
+<section class="slide g1" data-id="present"><h2 class="title">Hub</h2>
+  <div data-goto="present">ok</div>
+  <div data-goto="nowhere">broken</div>
+</section>

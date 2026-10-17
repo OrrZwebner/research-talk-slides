@@ -1,0 +1,17 @@
+{
+  "name": "research-talk-slides",
+  "owner": {
+    "name": "Orr Zwebner"
+  },
+  "metadata": {
+    "description": "Marketplace for the research-talk-slides plugin: interactive HTML research-talk slides on a fixed kit."
+  },
+  "plugins": [
+    {
+      "name": "research-talk-slides",
+      "description": "Research-talk slides as interactive HTML on a fixed kit, with step-reveal, drill-down, stable arrows and screenshot verification.",
+      "source": "./",
+      "strict": true
+    }
+  ]
+}

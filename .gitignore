@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pdf
+*.skill
+*.zip
+.DS_Store
+notes/
+shots/
+*.png
+!docs/*.png

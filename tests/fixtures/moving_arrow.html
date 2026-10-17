@@ -1,0 +1,7 @@
+<!-- Synthetic fixture for shot.py --check: the arrow path is rewritten every 100 ms, so two shots
+     550 ms apart see different d attributes by construction. Expected: arrows_moved non-empty, exit 1. -->
+<section class="slide mv1"><h2 class="title">Moving</h2>
+  <svg width="600" height="200" viewBox="0 0 600 200"><path id="mv1-p" d="M10,100 L100,100" stroke="#333" stroke-width="3" fill="none"/></svg>
+  <script>(function(){var n=0;setInterval(function(){n++;var p=document.getElementById('mv1-p');
+    if(p)p.setAttribute('d','M10,100 L'+(100+n)+',100');},100);})();</script>
+</section>

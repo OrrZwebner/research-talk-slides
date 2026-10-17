@@ -1,0 +1,11 @@
+<!-- Synthetic fixture: two slides, unique ids, a resolvable drill-down, px units only.
+     Expected: 2 slides, no warnings. A 10vw inside this comment must be ignored. -->
+<section class="slide fxa" data-title="Hub">
+  <h2 class="title">Hub</h2>
+  <style>.fxa .box{width:300px;height:120px;border:2px solid #333}</style>
+  <div id="fxa-box" class="box" data-goto="fx-detail">Open detail</div>
+</section>
+<section class="slide fxb" data-title="Detail" data-id="fx-detail">
+  <h2 class="title">Detail</h2>
+  <div id="fxb-box" style="width:200px">Detail body</div>
+</section>

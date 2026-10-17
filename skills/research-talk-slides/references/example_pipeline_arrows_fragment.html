@@ -1,0 +1,160 @@
+<!--
+  PATTERN · pipeline scheme with stable SVG arrows (procedure P3 in SKILL.md).
+  Copy, rename the section class (.pipe) and the marker id (pipe-ah), then edit.
+  - Boxes in a CSS grid; rows of <= 3; a wide box may span columns.
+  - Each revealed box: .st.step with data-step="k" and data-k (geometry index).
+  - ONE SVG overlay (viewBox 0 0 1280 720); arrows computed once from rectOf()
+    (+ resize / slide activation), never per step; kit:step only toggles opacity.
+  - .pipe .step{transform:none} keeps geometry fixed between clicks.
+  - Between rows: entry arrow only, into the first box of the next row.
+  - Labels 11px, static, ~12px above the arrow, clamped to x in [70,1210].
+  Values are schematic.
+-->
+<section class="slide pipe" data-section="02" data-title="From text to next token">
+  <h2 class="title">From text to next token</h2>
+  <style>
+  .pipe h2.title{margin-bottom:14px}
+  .pipe .step{transform:none}               /* arrow slide: opacity-only reveal */
+  .pipe .pipe-grid{position:relative;flex:1;min-height:0;display:grid;
+       grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+       column-gap:64px;row-gap:26px}
+  .pipe .st{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .pipe .lab{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--en);margin:0 0 7px;line-height:1.1}
+  .pipe .box{flex:1;min-height:0;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;
+       box-shadow:0 2px 9px rgba(20,30,50,.06);display:flex;align-items:center;justify-content:center;
+       overflow:hidden;padding:16px 20px}
+  .pipe .box.accent{border-left:5px solid var(--en)}
+  .pipe .inp{font-family:var(--serif);font-size:30px;color:var(--ink);line-height:1.3;width:100%}
+  .pipe .toks{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .pipe .tk{font-family:var(--mono);font-size:19px;color:var(--en);background:#eef3fb;border:1px solid #cdddf2;
+       border-radius:7px;padding:6px 12px;opacity:0;transform:scale(.6)}
+  .pipe .step.shown .tk{animation:pipe-pop .42s cubic-bezier(.2,1.2,.4,1) forwards}
+  @keyframes pipe-pop{to{opacity:1;transform:scale(1)}}
+  .pipe .mtx{font-family:var(--mono);font-size:13px;color:var(--ink);width:100%;display:flex;flex-direction:column;gap:2px}
+  .pipe .mrow{display:grid;grid-template-columns:44px repeat(4,1fr) 18px;gap:0 8px;text-align:right;
+       padding:1px 6px;border-radius:4px}
+  .pipe .mrow .tn{color:var(--en);font-weight:600;text-align:left}
+  .pipe .mdots{text-align:center;color:var(--muted);line-height:.9}
+  .pipe .net{width:100%;height:100%;display:block}
+  .pipe .nt{display:flex;align-items:center;gap:26px;width:100%}
+  .pipe .probs{flex:1;font-family:var(--mono);font-size:15px;display:flex;flex-direction:column;gap:3px}
+  .pipe .phead{display:flex;justify-content:flex-end;font-size:12px;color:var(--en);font-weight:700;
+       border-bottom:1px solid var(--line);padding-bottom:2px}
+  .pipe .prow{display:flex;justify-content:space-between}
+  .pipe .prow .pv{color:var(--en);font-weight:700}
+  .pipe .prow.top .pt,.pipe .prow.top .pv{color:var(--gr);font-weight:700}
+  .pipe .predchip{font-family:var(--mono);font-weight:700;font-size:24px;color:#fff;background:var(--gr);
+       border-radius:12px;padding:12px 22px;box-shadow:0 4px 14px rgba(90,143,105,.35)}
+  .pipe .arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+  .pipe .arrows .ar{stroke:#9aa3b2;stroke-width:3;fill:none}
+  .pipe .arrows .arlab{font-family:var(--mono);font-size:11px;fill:#6b7480;text-anchor:middle;font-weight:600}
+  @media (prefers-reduced-motion:reduce){.pipe .step.shown .tk{animation:none;opacity:1;transform:none}}
+  </style>
+
+  <div class="pipe-grid">
+    <!-- row 1 -->
+    <div class="st" data-k="0" style="grid-column:1;grid-row:1">
+      <p class="lab">Text</p>
+      <div class="box accent"><div class="inp">The cat sat on the</div></div>
+    </div>
+    <div class="st step" data-step="1" data-k="1" style="grid-column:2;grid-row:1">
+      <p class="lab">Tokenizer</p>
+      <div class="box"><div class="toks">
+        <span class="tk" style="animation-delay:.05s">The</span>
+        <span class="tk" style="animation-delay:.35s">cat</span>
+        <span class="tk" style="animation-delay:.65s">sat</span>
+        <span class="tk" style="animation-delay:.95s">on</span>
+        <span class="tk" style="animation-delay:1.25s">the</span>
+      </div></div>
+    </div>
+    <div class="st step" data-step="2" data-k="2" style="grid-column:3;grid-row:1">
+      <p class="lab">Embeddings</p>
+      <div class="box"><div class="mtx">
+        <div class="mrow"><span class="tn">The</span><span>0.12</span><span>-0.40</span><span>0.31</span><span>0.05</span><span>…</span></div>
+        <div class="mrow"><span class="tn">cat</span><span>-0.27</span><span>0.18</span><span>0.66</span><span>-0.09</span><span>…</span></div>
+        <div class="mrow"><span class="tn">sat</span><span>0.44</span><span>0.02</span><span>-0.15</span><span>0.38</span><span>…</span></div>
+        <div class="mrow"><span class="tn">on</span><span>-0.06</span><span>-0.33</span><span>0.21</span><span>0.17</span><span>…</span></div>
+        <div class="mrow"><span class="tn">the</span><span>0.10</span><span>-0.38</span><span>0.29</span><span>0.07</span><span>…</span></div>
+      </div></div>
+    </div>
+    <!-- row 2 -->
+    <div class="st step" data-step="3" data-k="3" style="grid-column:1 / span 2;grid-row:2">
+      <p class="lab">Transformer</p>
+      <div class="box"><svg class="net" viewBox="0 0 640 170" preserveAspectRatio="xMidYMid meet">
+        <g class="net-lines" stroke="#c7cfdb" stroke-width="1.2"></g>
+        <g class="net-nodes" fill="#fff" stroke="#3b7dd8" stroke-width="2"></g>
+      </svg></div>
+    </div>
+    <div class="st step" data-step="4" data-k="4" style="grid-column:3;grid-row:2">
+      <p class="lab">Next token</p>
+      <div class="box"><div class="nt">
+        <div class="probs">
+          <div class="phead">P</div>
+          <div class="prow top"><span class="pt">mat</span><span class="pv">0.62</span></div>
+          <div class="prow"><span class="pt">floor</span><span class="pv">0.14</span></div>
+          <div class="prow"><span class="pt">sofa</span><span class="pv">0.09</span></div>
+          <div class="prow"><span class="pt">bed</span><span class="pv">0.06</span></div>
+        </div>
+        <div class="predchip">mat</div>
+      </div></div>
+    </div>
+  </div>
+
+  <svg class="arrows" viewBox="0 0 1280 720" preserveAspectRatio="none">
+    <defs><marker id="pipe-ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3.2" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7,3.2 L0,6.4 Z" fill="#9aa3b2"/></marker></defs>
+    <g class="argroups"></g>
+  </svg>
+
+  <aside class="notes-src">The prompt is split into tokens, each token is looked up as a vector, the transformer mixes information across positions (each position sees only earlier ones), and a softmax over the vocabulary gives the next token. All numbers are schematic.</aside>
+
+  <script>
+  (function(){
+    var slide=document.currentScript.closest('.slide');
+    var NS='http://www.w3.org/2000/svg';
+    function mk(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+    /* transformer: 5 positions x 4 levels, causal connections between levels */
+    (function buildNet(){
+      var L=slide.querySelector('.net-lines'), N=slide.querySelector('.net-nodes');
+      var cols=5, levels=4, W=640, H=170, pts=[];
+      for(var l=0;l<levels;l++){ var row=[];
+        for(var c=0;c<cols;c++) row.push({x:70+c*(W-140)/(cols-1), y:H-18-l*(H-36)/(levels-1)});
+        pts.push(row); }
+      for(var l=0;l<levels-1;l++) for(var c=0;c<cols;c++) for(var d=0;d<=c;d++)
+        L.appendChild(mk('line',{x1:pts[l][d].x,y1:pts[l][d].y,x2:pts[l+1][c].x,y2:pts[l+1][c].y}));
+      pts.forEach(function(r){r.forEach(function(p){N.appendChild(mk('circle',{cx:p.x,cy:p.y,r:9}));});});
+    })();
+
+    /* arrows: computed from geometry once (+ resize / activation), never per step */
+    var groot=slide.querySelector('.argroups'), groups={}, PAD=10, ENTRY=34;
+    function rectOf(el){ var sr=slide.getBoundingClientRect(), r=el.getBoundingClientRect(),
+        sx=1280/sr.width, sy=720/sr.height;
+      return {l:(r.left-sr.left)*sx, r:(r.right-sr.left)*sx, t:(r.top-sr.top)*sy, b:(r.bottom-sr.top)*sy,
+              cy:((r.top+r.bottom)/2-sr.top)*sy}; }
+    function box(k){ return rectOf(slide.querySelector('.st[data-k="'+k+'"] .box')); }
+    function g(s){ if(!groups[s]){ var e=mk('g',{}); e.style.transition='opacity .45s ease'; groot.appendChild(e); groups[s]=e; } return groups[s]; }
+    function arrow(x1,y1,x2,y2){ return mk('path',{d:'M'+x1.toFixed(1)+','+y1.toFixed(1)+' L'+x2.toFixed(1)+','+y2.toFixed(1),'class':'ar','marker-end':'url(#pipe-ah)'}); }
+    function label(x,y,t){ var e=mk('text',{x:Math.max(70,Math.min(1210,x)),y:y,'class':'arlab'}); e.textContent=t; return e; }
+    function layout(){
+      groot.innerHTML=''; groups={};
+      var b=[0,1,2,3,4].map(box);
+      g(1).appendChild(arrow(b[0].r+PAD,b[0].cy,b[1].l-PAD,b[0].cy));
+      g(2).appendChild(arrow(b[1].r+PAD,b[1].cy,b[2].l-PAD,b[1].cy));
+      g(3).appendChild(arrow(b[3].l-PAD-ENTRY,b[3].cy,b[3].l-PAD,b[3].cy));     /* row entry only */
+      g(4).appendChild(arrow(b[3].r+PAD,b[3].cy,b[4].l-PAD,b[3].cy));
+      g(4).appendChild(label((b[3].r+b[4].l)/2,b[3].cy-12,'softmax'));
+      applyShown();
+    }
+    function applyShown(){ for(var s in groups){ var st=slide.querySelector('.st[data-step="'+s+'"]');
+      groups[s].style.opacity=(st&&st.classList.contains('shown'))?'1':'0'; } }
+    document.addEventListener('kit:step',applyShown);
+    document.addEventListener('kit:unstep',applyShown);
+    window.addEventListener('resize',function(){ if(slide.classList.contains('active')) layout(); });
+    new MutationObserver(function(){ if(slide.classList.contains('active')) layout(); })
+      .observe(slide,{attributes:true,attributeFilter:['class']});
+    requestAnimationFrame(function(){ requestAnimationFrame(layout); });
+    setTimeout(layout,400);
+  })();
+  </script>
+</section>

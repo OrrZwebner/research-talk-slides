@@ -1,0 +1,9 @@
+{
+  "name": "research-talk-slides",
+  "version": "1.0.0",
+  "description": "Research-talk slides as interactive HTML on a fixed 1280x720 kit: step-reveal, drill-down, stable SVG arrows, logo slots, and screenshot verification of every reveal step.",
+  "author": {
+    "name": "Orr Zwebner"
+  },
+  "keywords": ["slides", "presentation", "research-talk", "html", "conference", "step-reveal", "playwright"]
+}

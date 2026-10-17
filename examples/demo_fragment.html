@@ -1,0 +1,317 @@
+<!--
+  Demo deck: "How a transformer LM works". ALL VALUES ARE SCHEMATIC / SYNTHETIC.
+  One fragment, five <section>s (4 in the talk sequence + 1 drill-down detail).
+  Build:  python3 skills/research-talk-slides/scripts/assemble.py examples/demo_fragment.html examples/demo_deck.html
+  Every slide scopes its CSS under its own section class and prefixes ids/keyframes,
+  so the sections cannot break each other inside one combined deck.
+-->
+
+<!-- ===================== 1 · TITLE ===================== -->
+<section class="slide ttl" data-section="01" data-title="Title">
+  <style>
+  .ttl{justify-content:center}
+  .ttl h1.title{font-size:66px;max-width:none;margin:0 0 18px;padding-bottom:36px}
+  .ttl .ttl-sub{font-family:var(--serif);font-size:26px;color:var(--muted)}
+  .ttl .ttl-bar{width:120px;height:6px;border-radius:3px;background:var(--sa);margin-bottom:30px}
+  </style>
+  <div class="ttl-bar"></div>
+  <h1 class="title">How a transformer LM works</h1>
+  <p class="ttl-sub">A schematic walk-through</p>
+  <aside class="notes-src">Demo deck for the research-talk-slides kit. Every number in it is schematic.</aside>
+</section>
+
+<!-- ===================== 2 · PIPELINE (stable SVG arrows) ===================== -->
+<section class="slide pipe" data-section="02" data-title="From text to next token">
+  <h2 class="title">From text to next token</h2>
+  <style>
+  .pipe h2.title{margin-bottom:14px}
+  .pipe .step{transform:none}               /* arrow slide: opacity-only reveal */
+  .pipe .pipe-grid{position:relative;flex:1;min-height:0;display:grid;
+       grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+       column-gap:64px;row-gap:26px}
+  .pipe .st{display:flex;flex-direction:column;min-width:0;min-height:0}
+  .pipe .lab{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--en);margin:0 0 7px;line-height:1.1}
+  .pipe .box{flex:1;min-height:0;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;
+       box-shadow:0 2px 9px rgba(20,30,50,.06);display:flex;align-items:center;justify-content:center;
+       overflow:hidden;padding:16px 20px}
+  .pipe .box.accent{border-left:5px solid var(--en)}
+  .pipe .inp{font-family:var(--serif);font-size:30px;color:var(--ink);line-height:1.3;width:100%}
+  .pipe .toks{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .pipe .tk{font-family:var(--mono);font-size:19px;color:var(--en);background:#eef3fb;border:1px solid #cdddf2;
+       border-radius:7px;padding:6px 12px;opacity:0;transform:scale(.6)}
+  .pipe .step.shown .tk{animation:pipe-pop .42s cubic-bezier(.2,1.2,.4,1) forwards}
+  @keyframes pipe-pop{to{opacity:1;transform:scale(1)}}
+  .pipe .mtx{font-family:var(--mono);font-size:13px;color:var(--ink);width:100%;display:flex;flex-direction:column;gap:2px}
+  .pipe .mrow{display:grid;grid-template-columns:44px repeat(4,1fr) 18px;gap:0 8px;text-align:right;
+       padding:1px 6px;border-radius:4px}
+  .pipe .mrow .tn{color:var(--en);font-weight:600;text-align:left}
+  .pipe .mdots{text-align:center;color:var(--muted);line-height:.9}
+  .pipe .net{width:100%;height:100%;display:block}
+  .pipe .nt{display:flex;align-items:center;gap:26px;width:100%}
+  .pipe .probs{flex:1;font-family:var(--mono);font-size:15px;display:flex;flex-direction:column;gap:3px}
+  .pipe .phead{display:flex;justify-content:flex-end;font-size:12px;color:var(--en);font-weight:700;
+       border-bottom:1px solid var(--line);padding-bottom:2px}
+  .pipe .prow{display:flex;justify-content:space-between}
+  .pipe .prow .pv{color:var(--en);font-weight:700}
+  .pipe .prow.top .pt,.pipe .prow.top .pv{color:var(--gr);font-weight:700}
+  .pipe .predchip{font-family:var(--mono);font-weight:700;font-size:24px;color:#fff;background:var(--gr);
+       border-radius:12px;padding:12px 22px;box-shadow:0 4px 14px rgba(90,143,105,.35)}
+  .pipe .arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+  .pipe .arrows .ar{stroke:#9aa3b2;stroke-width:3;fill:none}
+  .pipe .arrows .arlab{font-family:var(--mono);font-size:11px;fill:#6b7480;text-anchor:middle;font-weight:600}
+  @media (prefers-reduced-motion:reduce){.pipe .step.shown .tk{animation:none;opacity:1;transform:none}}
+  </style>
+
+  <div class="pipe-grid">
+    <!-- row 1 -->
+    <div class="st" data-k="0" style="grid-column:1;grid-row:1">
+      <p class="lab">Text</p>
+      <div class="box accent"><div class="inp">The cat sat on the</div></div>
+    </div>
+    <div class="st step" data-step="1" data-k="1" style="grid-column:2;grid-row:1">
+      <p class="lab">Tokenizer</p>
+      <div class="box"><div class="toks">
+        <span class="tk" style="animation-delay:.05s">The</span>
+        <span class="tk" style="animation-delay:.35s">cat</span>
+        <span class="tk" style="animation-delay:.65s">sat</span>
+        <span class="tk" style="animation-delay:.95s">on</span>
+        <span class="tk" style="animation-delay:1.25s">the</span>
+      </div></div>
+    </div>
+    <div class="st step" data-step="2" data-k="2" style="grid-column:3;grid-row:1">
+      <p class="lab">Embeddings</p>
+      <div class="box"><div class="mtx">
+        <div class="mrow"><span class="tn">The</span><span>0.12</span><span>-0.40</span><span>0.31</span><span>0.05</span><span>…</span></div>
+        <div class="mrow"><span class="tn">cat</span><span>-0.27</span><span>0.18</span><span>0.66</span><span>-0.09</span><span>…</span></div>
+        <div class="mrow"><span class="tn">sat</span><span>0.44</span><span>0.02</span><span>-0.15</span><span>0.38</span><span>…</span></div>
+        <div class="mrow"><span class="tn">on</span><span>-0.06</span><span>-0.33</span><span>0.21</span><span>0.17</span><span>…</span></div>
+        <div class="mrow"><span class="tn">the</span><span>0.10</span><span>-0.38</span><span>0.29</span><span>0.07</span><span>…</span></div>
+      </div></div>
+    </div>
+    <!-- row 2 -->
+    <div class="st step" data-step="3" data-k="3" style="grid-column:1 / span 2;grid-row:2">
+      <p class="lab">Transformer</p>
+      <div class="box"><svg class="net" viewBox="0 0 640 170" preserveAspectRatio="xMidYMid meet">
+        <g class="net-lines" stroke="#c7cfdb" stroke-width="1.2"></g>
+        <g class="net-nodes" fill="#fff" stroke="#3b7dd8" stroke-width="2"></g>
+      </svg></div>
+    </div>
+    <div class="st step" data-step="4" data-k="4" style="grid-column:3;grid-row:2">
+      <p class="lab">Next token</p>
+      <div class="box"><div class="nt">
+        <div class="probs">
+          <div class="phead">P</div>
+          <div class="prow top"><span class="pt">mat</span><span class="pv">0.62</span></div>
+          <div class="prow"><span class="pt">floor</span><span class="pv">0.14</span></div>
+          <div class="prow"><span class="pt">sofa</span><span class="pv">0.09</span></div>
+          <div class="prow"><span class="pt">bed</span><span class="pv">0.06</span></div>
+        </div>
+        <div class="predchip">mat</div>
+      </div></div>
+    </div>
+  </div>
+
+  <svg class="arrows" viewBox="0 0 1280 720" preserveAspectRatio="none">
+    <defs><marker id="pipe-ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3.2" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L7,3.2 L0,6.4 Z" fill="#9aa3b2"/></marker></defs>
+    <g class="argroups"></g>
+  </svg>
+
+  <aside class="notes-src">The prompt is split into tokens, each token is looked up as a vector, the transformer mixes information across positions (each position sees only earlier ones), and a softmax over the vocabulary gives the next token. All numbers are schematic.</aside>
+
+  <script>
+  (function(){
+    var slide=document.currentScript.closest('.slide');
+    var NS='http://www.w3.org/2000/svg';
+    function mk(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+    /* transformer: 5 positions x 4 levels, causal connections between levels */
+    (function buildNet(){
+      var L=slide.querySelector('.net-lines'), N=slide.querySelector('.net-nodes');
+      var cols=5, levels=4, W=640, H=170, pts=[];
+      for(var l=0;l<levels;l++){ var row=[];
+        for(var c=0;c<cols;c++) row.push({x:70+c*(W-140)/(cols-1), y:H-18-l*(H-36)/(levels-1)});
+        pts.push(row); }
+      for(var l=0;l<levels-1;l++) for(var c=0;c<cols;c++) for(var d=0;d<=c;d++)
+        L.appendChild(mk('line',{x1:pts[l][d].x,y1:pts[l][d].y,x2:pts[l+1][c].x,y2:pts[l+1][c].y}));
+      pts.forEach(function(r){r.forEach(function(p){N.appendChild(mk('circle',{cx:p.x,cy:p.y,r:9}));});});
+    })();
+
+    /* arrows: computed from geometry once (+ resize / activation), never per step */
+    var groot=slide.querySelector('.argroups'), groups={}, PAD=10, ENTRY=34;
+    function rectOf(el){ var sr=slide.getBoundingClientRect(), r=el.getBoundingClientRect(),
+        sx=1280/sr.width, sy=720/sr.height;
+      return {l:(r.left-sr.left)*sx, r:(r.right-sr.left)*sx, t:(r.top-sr.top)*sy, b:(r.bottom-sr.top)*sy,
+              cy:((r.top+r.bottom)/2-sr.top)*sy}; }
+    function box(k){ return rectOf(slide.querySelector('.st[data-k="'+k+'"] .box')); }
+    function g(s){ if(!groups[s]){ var e=mk('g',{}); e.style.transition='opacity .45s ease'; groot.appendChild(e); groups[s]=e; } return groups[s]; }
+    function arrow(x1,y1,x2,y2){ return mk('path',{d:'M'+x1.toFixed(1)+','+y1.toFixed(1)+' L'+x2.toFixed(1)+','+y2.toFixed(1),'class':'ar','marker-end':'url(#pipe-ah)'}); }
+    function label(x,y,t){ var e=mk('text',{x:Math.max(70,Math.min(1210,x)),y:y,'class':'arlab'}); e.textContent=t; return e; }
+    function layout(){
+      groot.innerHTML=''; groups={};
+      var b=[0,1,2,3,4].map(box);
+      g(1).appendChild(arrow(b[0].r+PAD,b[0].cy,b[1].l-PAD,b[0].cy));
+      g(2).appendChild(arrow(b[1].r+PAD,b[1].cy,b[2].l-PAD,b[1].cy));
+      g(3).appendChild(arrow(b[3].l-PAD-ENTRY,b[3].cy,b[3].l-PAD,b[3].cy));     /* row entry only */
+      g(4).appendChild(arrow(b[3].r+PAD,b[3].cy,b[4].l-PAD,b[3].cy));
+      g(4).appendChild(label((b[3].r+b[4].l)/2,b[3].cy-12,'softmax'));
+      applyShown();
+    }
+    function applyShown(){ for(var s in groups){ var st=slide.querySelector('.st[data-step="'+s+'"]');
+      groups[s].style.opacity=(st&&st.classList.contains('shown'))?'1':'0'; } }
+    document.addEventListener('kit:step',applyShown);
+    document.addEventListener('kit:unstep',applyShown);
+    window.addEventListener('resize',function(){ if(slide.classList.contains('active')) layout(); });
+    new MutationObserver(function(){ if(slide.classList.contains('active')) layout(); })
+      .observe(slide,{attributes:true,attributeFilter:['class']});
+    requestAnimationFrame(function(){ requestAnimationFrame(layout); });
+    setTimeout(layout,400);
+  })();
+  </script>
+</section>
+
+<!-- ===================== 3 · OVERVIEW (drill-down hub) ===================== -->
+<section class="slide tblk" data-section="03" data-title="Inside a transformer block" data-id="tblock">
+  <h2 class="title">Inside a transformer block</h2>
+  <style>
+  .tblk .tblk-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:0 18px;align-items:stretch;margin-top:70px}
+  .tblk .comp{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;
+       box-shadow:0 2px 10px rgba(20,30,50,.06);padding:34px 22px 30px;display:flex;flex-direction:column;
+       align-items:center;gap:20px;transition:border-color .18s,box-shadow .18s}
+  .tblk .comp[data-goto]:hover{border-color:var(--sa);box-shadow:0 8px 24px rgba(59,125,216,.16)}
+  .tblk .ic{width:120px;height:120px;border-radius:20px;background:var(--tint);display:flex;align-items:center;justify-content:center}
+  .tblk .nm{font-family:var(--title);font-weight:700;font-size:28px;color:var(--ink);text-align:center;line-height:1.15}
+  .tblk .cflow{align-self:center;color:#9aa3b2;font-size:44px;line-height:1}
+  </style>
+  <div class="tblk-row">
+    <div class="comp step" data-step="1" data-goto="attn">
+      <div class="ic"><svg width="84" height="84" viewBox="0 0 84 84">
+        <g stroke="#3b7dd8" stroke-width="2" opacity=".7">
+          <line x1="12" y1="66" x2="42" y2="18"/><line x1="27" y1="66" x2="42" y2="18"/><line x1="42" y1="66" x2="42" y2="18"/>
+          <line x1="57" y1="66" x2="42" y2="18"/><line x1="72" y1="66" x2="42" y2="18"/></g>
+        <g fill="#1b2a4a"><circle cx="12" cy="68" r="6"/><circle cx="27" cy="68" r="6"/><circle cx="42" cy="68" r="6"/><circle cx="57" cy="68" r="6"/><circle cx="72" cy="68" r="6"/></g>
+        <circle cx="42" cy="16" r="9" fill="#e8833a"/></svg></div>
+      <div class="nm">Attention</div>
+    </div>
+    <div class="cflow step" data-step="2">›</div>
+    <div class="comp step" data-step="2">
+      <div class="ic"><svg width="84" height="84" viewBox="0 0 84 84">
+        <g stroke="#c4ccd8" stroke-width="1.5">
+          <line x1="16" y1="26" x2="42" y2="14"/><line x1="16" y1="26" x2="42" y2="42"/><line x1="16" y1="26" x2="42" y2="70"/>
+          <line x1="16" y1="58" x2="42" y2="14"/><line x1="16" y1="58" x2="42" y2="42"/><line x1="16" y1="58" x2="42" y2="70"/>
+          <line x1="42" y1="14" x2="68" y2="26"/><line x1="42" y1="42" x2="68" y2="26"/><line x1="42" y1="70" x2="68" y2="26"/>
+          <line x1="42" y1="14" x2="68" y2="58"/><line x1="42" y1="42" x2="68" y2="58"/><line x1="42" y1="70" x2="68" y2="58"/></g>
+        <g fill="#fff" stroke="#3b7dd8" stroke-width="2.4"><circle cx="16" cy="26" r="7"/><circle cx="16" cy="58" r="7"/>
+          <circle cx="42" cy="14" r="7"/><circle cx="42" cy="42" r="7"/><circle cx="42" cy="70" r="7"/>
+          <circle cx="68" cy="26" r="7"/><circle cx="68" cy="58" r="7"/></g></svg></div>
+      <div class="nm">Feed-forward</div>
+    </div>
+    <div class="cflow step" data-step="3">›</div>
+    <div class="comp step" data-step="3">
+      <div class="ic"><svg width="84" height="84" viewBox="0 0 84 84">
+        <path d="M14,70 L14,42 L70,42" fill="none" stroke="#1b2a4a" stroke-width="3"/>
+        <path d="M14,42 C14,12 70,12 70,34" fill="none" stroke="#5a8f69" stroke-width="3" stroke-dasharray="5 4"/>
+        <circle cx="42" cy="42" r="12" fill="#fff" stroke="#e8833a" stroke-width="3"/>
+        <path d="M42,35 L42,49 M35,42 L49,42" stroke="#e8833a" stroke-width="3"/></svg></div>
+      <div class="nm">Residual + Norm</div>
+    </div>
+  </div>
+  <aside class="notes-src">A block applies attention, then a feed-forward network, each wrapped with a residual connection and normalisation. Click Attention to open its detail.</aside>
+</section>
+
+<!-- ===================== 3a · ATTENTION (detail, reached by click) ===================== -->
+<section class="slide attn" data-section="03a" data-title="Attention" data-id="attn">
+  <h2 class="title">Attention</h2>
+  <style>
+  .attn .attn-wrap{display:flex;gap:64px;align-items:flex-start;margin-top:10px}
+  .attn .hm{display:grid;grid-template-columns:62px repeat(5,66px);grid-auto-rows:62px;gap:4px;
+       font-family:var(--mono);font-size:15px}
+  .attn .hm .hd{display:flex;align-items:flex-end;justify-content:center;color:var(--muted);font-size:14px;padding-bottom:4px;height:28px}
+  .attn .hm .ql{display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:var(--en);font-weight:600}
+  .attn .hm .c{border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink);
+       background:rgba(59,125,216,var(--w));transition:box-shadow .3s}
+  .attn .hm .c.hot{color:#fff}
+  .attn .hm .c.mask{background:#f3f4f7;color:#c3c8d2}
+  .attn .hm .corner{height:28px}
+  .attn .qrow{position:absolute;border:3px solid var(--bo);border-radius:9px;pointer-events:none}
+  .attn .hmbox{position:relative}
+  .attn .cap{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;padding-left:66px}
+  .attn .sum{background:var(--panel);border:1.5px solid var(--line);border-left:5px solid var(--bo);border-radius:14px;
+       box-shadow:0 2px 10px rgba(20,30,50,.06);padding:20px 26px;font-family:var(--mono);font-size:18px;margin-top:40px}
+  .attn .sum .lhs{color:var(--bo);font-weight:700;margin-bottom:10px}
+  .attn .sum .term{display:grid;grid-template-columns:22px 54px auto;gap:6px;line-height:1.6}
+  .attn .sum .term .w{text-align:right;color:var(--sa);font-weight:700}
+  .attn .sum .term .op{color:var(--muted)}
+  </style>
+  <div class="attn-wrap">
+    <div>
+      <div class="hmbox">
+        <div class="hm" style="grid-template-rows:28px repeat(5,62px)">
+          <div class="corner"></div><div class="hd">The</div><div class="hd">cat</div><div class="hd">sat</div><div class="hd">on</div><div class="hd">the</div>
+          <div class="ql">The</div><div class="c hot" style="--w:1">1.00</div><div class="c mask">·</div><div class="c mask">·</div><div class="c mask">·</div><div class="c mask">·</div>
+          <div class="ql">cat</div><div class="c" style="--w:.4">0.40</div><div class="c hot" style="--w:.6">0.60</div><div class="c mask">·</div><div class="c mask">·</div><div class="c mask">·</div>
+          <div class="ql">sat</div><div class="c" style="--w:.2">0.20</div><div class="c" style="--w:.5">0.50</div><div class="c" style="--w:.3">0.30</div><div class="c mask">·</div><div class="c mask">·</div>
+          <div class="ql">on</div><div class="c" style="--w:.1">0.10</div><div class="c" style="--w:.2">0.20</div><div class="c" style="--w:.5">0.50</div><div class="c" style="--w:.2">0.20</div><div class="c mask">·</div>
+          <div class="ql">the</div><div class="c" style="--w:.05">0.05</div><div class="c" style="--w:.1">0.10</div><div class="c" style="--w:.4">0.40</div><div class="c" style="--w:.15">0.15</div><div class="c" style="--w:.3">0.30</div>
+        </div>
+        <!-- query-row highlight: row 5 starts at y = 28 + 4 + 4*(62+4) = 296; ring = 4px outside, x spans the 5 weight cells -->
+        <div class="qrow step" data-step="1" style="left:62px;top:292px;width:354px;height:70px"></div>
+      </div>
+      <div class="cap">illustrative weights</div>
+    </div>
+    <div class="sum step" data-step="2">
+      <div class="lhs">out(the) =</div>
+      <div class="term"><span class="op"></span><span class="w">0.05</span><span>· v(The)</span></div>
+      <div class="term"><span class="op">+</span><span class="w">0.10</span><span>· v(cat)</span></div>
+      <div class="term"><span class="op">+</span><span class="w">0.40</span><span>· v(sat)</span></div>
+      <div class="term"><span class="op">+</span><span class="w">0.15</span><span>· v(on)</span></div>
+      <div class="term"><span class="op">+</span><span class="w">0.30</span><span>· v(the)</span></div>
+    </div>
+  </div>
+  <aside class="notes-src">Each row is one query position; it attends only to itself and earlier positions (causal mask), and its weights sum to 1. The output for "the" is the weighted sum of the value vectors. Weights are illustrative.</aside>
+</section>
+
+<!-- ===================== 4 · TOY CHART (illustrative) ===================== -->
+<section class="slide lchart" data-section="04" data-title="Validation loss">
+  <h2 class="title">Validation loss during training</h2>
+  <style>
+  .lchart .step{transform:none}
+  .lchart svg.plot{width:960px;height:430px;display:block;margin:0 auto}
+  .lchart .ax{stroke:#5e6470;stroke-width:1.5}
+  .lchart .gridl{stroke:#eceef2;stroke-width:1}
+  .lchart .tick{font-family:var(--mono);font-size:14px;fill:#5e6470}
+  .lchart .axl{font-family:var(--mono);font-size:15px;fill:#1a1a1a}
+  .lchart .sr{fill:none;stroke-width:3.5}
+  .lchart .sl{font-family:var(--mono);font-size:15px;font-weight:600}
+  .lchart .cap{font-family:var(--mono);font-size:12px;fill:#5e6470}
+  </style>
+  <!-- data (synthetic): step k = 0..10 (thousands); y-axis loss 2..6.
+       small: 6.0 4.2 3.6 3.3 3.15 3.05 at k=0,2,4,6,8,10
+       large: 6.0 3.6 2.9 2.6 2.45 2.35
+       x = 110 + 74*k ; y = 30 + (6-loss)*85  -->
+  <svg class="plot" viewBox="0 0 960 430">
+    <g class="gridl"><line x1="110" y1="30" x2="850" y2="30"/><line x1="110" y1="115" x2="850" y2="115"/>
+      <line x1="110" y1="200" x2="850" y2="200"/><line x1="110" y1="285" x2="850" y2="285"/></g>
+    <line class="ax" x1="110" y1="370" x2="850" y2="370"/><line class="ax" x1="110" y1="30" x2="110" y2="370"/>
+    <g class="tick" text-anchor="end"><text x="100" y="35">6</text><text x="100" y="120">5</text><text x="100" y="205">4</text>
+      <text x="100" y="290">3</text><text x="100" y="375">2</text></g>
+    <g class="tick" text-anchor="middle"><text x="110" y="394">0</text><text x="258" y="394">2k</text><text x="406" y="394">4k</text>
+      <text x="554" y="394">6k</text><text x="702" y="394">8k</text><text x="850" y="394">10k</text></g>
+    <text class="axl" x="480" y="422" text-anchor="middle">training steps</text>
+    <text class="axl" x="40" y="200" text-anchor="middle" transform="rotate(-90 40 200)">loss</text>
+    <g class="step" data-step="1">
+      <path class="sr" stroke="#3b7dd8" d="M110,30 L258,183 L406,234 L554,259.5 L702,272.3 L850,280.8"/>
+      <g fill="#3b7dd8"><circle cx="258" cy="183" r="5"/><circle cx="406" cy="234" r="5"/><circle cx="554" cy="259.5" r="5"/>
+        <circle cx="702" cy="272.3" r="5"/><circle cx="850" cy="280.8" r="5"/></g>
+      <text class="sl" x="862" y="286" fill="#3b7dd8">small</text>
+    </g>
+    <g class="step" data-step="2">
+      <path class="sr" stroke="#e8833a" d="M110,30 L258,234 L406,293.5 L554,319 L702,331.8 L850,340.3"/>
+      <g fill="#e8833a"><circle cx="258" cy="234" r="5"/><circle cx="406" cy="293.5" r="5"/><circle cx="554" cy="319" r="5"/>
+        <circle cx="702" cy="331.8" r="5"/><circle cx="850" cy="340.3" r="5"/></g>
+      <text class="sl" x="862" y="345" fill="#e8833a">large</text>
+    </g>
+    <text class="cap" x="850" y="422" text-anchor="end">illustrative (synthetic values)</text>
+  </svg>
+  <aside class="notes-src">Two schematic training curves. The values are synthetic and only illustrate the reveal of one series per click.</aside>
+</section>
