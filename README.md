@@ -44,6 +44,11 @@ Screenshot verification needs Python 3 and Playwright:
 - "Add an overview slide whose three components open detail slides."
 - "Check my slide at 1024×768 and fix anything that clips."
 
+As a plugin it also ships three agents for a whole talk: `talk-planner` (author's content →
+reveal storyboards + open questions), `talk-builder` (one confirmed storyboard → verified
+fragment; run several in parallel) and `talk-verifier` (read-only check of mechanics, clarity,
+flow and facts after building).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

@@ -96,6 +96,15 @@ Author and verify fragments independently (parallel subagents are fine; a drill-
 is one unit). Then `assemble.py -o deck.html f1.html f2.html …` in talk order, fix warnings,
 and run `shot.py` across the whole deck (`--start K` jumps to slide K).
 
+## Orchestrating a whole talk (agents)
+
+For more than a slide or two, the main agent orchestrates and the plugin's agents do the work:
+`talk-planner` turns the author's content into storyboards in the talk's PLAN file and returns
+the open questions (relay them; build nothing with a question open); `talk-builder` builds one
+confirmed storyboard per agent, several in parallel; `talk-verifier` then checks mechanics,
+clarity, flow and facts on the built slides and again on the stitched deck. Relay its findings
+to the author; fixes go back through a builder, never through the verifier.
+
 ## Non-negotiables
 
 1. Build against `assets/kit.html`; never re-style a slide from scratch.
