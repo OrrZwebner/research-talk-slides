@@ -164,3 +164,5 @@ judging an animated step.
 | 24 | Accent border missing | Use kit tokens only (`--en --sa --bo --gr`) |
 | 25 | Hidden component clicked by accident | Kit sets `.step:not(.shown){pointer-events:none}` |
 | 26 | Fragment script fails at load | IIFE + `currentScript.closest('.slide')`; no kit calls at load |
+| 30 | Screenshot run freezes after a slide is left (renderer at full CPU) | A `MutationObserver` on the slide's `class` must write classes only when the state really changes and act only on an active ↔ inactive transition; `classList.remove` of an absent class still rewrites the attribute and re-fires the observer forever |
+| 31 | Offline (no network in the room) titles change font, lines wrap | The kit loads fonts from Google; the fallback is ~17% wider. Bundle the woff2 files in the talk's `assets/fonts/` with `@font-face` rules (same family names) in the master fragment; verify with fonts.googleapis/gstatic blocked |
