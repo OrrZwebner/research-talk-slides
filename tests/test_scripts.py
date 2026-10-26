@@ -184,6 +184,13 @@ class TestShot(unittest.TestCase):
                 back = j['shots'][13]
                 self.assertEqual((back['slide'], back['step']), (3, 3))
 
+    def test_hang_stops_with_partial_result(self):
+        code, j = self.shot(self.deck('hang_loop.html'), '4', '--step-timeout', '5')
+        self.assertEqual(code, 1)
+        self.assertTrue(j['hang'])
+        self.assertEqual(j['stuck_at'], 'advance 2 (ArrowRight)')
+        self.assertEqual(len(j['shots']), 2)   # entry + advance 1
+
     def test_help_without_browser(self):
         # shot.py --help must work without launching a browser
         code, out, err = run('shot.py', '--help')

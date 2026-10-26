@@ -155,5 +155,7 @@ empty slots while laying out.
 - `references/example_drilldown_fragment.html` — copyable P2 pattern (hub + detail).
 - `scripts/assemble.py` — `FRAGMENT OUT` or `-o OUT FRAG…`; `--kit` overrides the kit.
 - `scripts/shot.py` — `DECK PREFIX [N]`, `--size WxH`, `--start K`, `--click SEL`,
-  `--then ACTION`, `--check`; exit 1 on real errors or a failed check, 2 if Playwright is
+  `--then ACTION`, `--check`, `--step-timeout S` (default 30: a slide script stuck in a loop
+  ends the run with `hang`/`stuck_at` instead of freezing it); exit 1 on real errors, a failed
+  check or a hang, 2 if Playwright is
   missing (tell the user the install command rather than skipping verification silently).

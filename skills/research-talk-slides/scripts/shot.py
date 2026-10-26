@@ -15,17 +15,23 @@ Options:
                       slide (arrows never move) and (b) no visible element of the active
                       slide extends below canvas y=620 (bottom logo band)
     --wait MS         wait after each action, default 550
+    --step-timeout S  give up when one load/action/screenshot makes no progress for S
+                      seconds (default 30; a slide script stuck in a loop freezes the page);
+                      prints the shots taken so far plus "hang" and "stuck_at", exit 1
 
 Writes PREFIX_00_entry.png, PREFIX_01.png, ...  Prints JSON:
     {"shots":[{"png","slide","step","action"}], "real_errors":[...], "check":{...}}
 and "REAL ERRORS: NONE" (or the list) on stderr. Font/network failures (offline
-web fonts) are filtered out. Exit codes: 0 pass, 1 real errors or failed check,
-2 Playwright missing.
+web fonts) are filtered out. Exit codes: 0 pass, 1 real errors, failed check or a
+hang (--step-timeout), 2 Playwright missing.
 """
 import argparse
 import json
+import os
 import pathlib
 import sys
+import threading
+import time
 
 INSTALL_HINT = 'pip install playwright && python -m playwright install chromium'
 
@@ -83,6 +89,22 @@ class Collect(argparse.Action):
         ns.actions = seq
 
 
+def kill_descendants(pid):
+    """SIGKILL every process below pid (driver, Chromium, renderers); pgrep is on Linux and macOS."""
+    import signal
+    import subprocess
+    try:
+        kids = subprocess.run(['pgrep', '-P', str(pid)], capture_output=True, text=True).stdout.split()
+    except OSError:
+        return
+    for k in kids:
+        kill_descendants(int(k))
+        try:
+            os.kill(int(k), signal.SIGKILL)
+        except OSError:
+            pass
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -97,6 +119,7 @@ def main():
     ap.add_argument('--then', action=Collect, dest='actions', metavar='ACTION')
     ap.add_argument('--check', action='store_true')
     ap.add_argument('--wait', type=int, default=550)
+    ap.add_argument('--step-timeout', type=float, default=30)
     a = ap.parse_args()
     actions = parse_actions(a.actions or [])
 
@@ -115,6 +138,27 @@ def main():
     pathlib.Path(a.prefix).parent.mkdir(parents=True, exist_ok=True)
     shots, errs, per_slide_paths, low_hits = [], [], {}, []
 
+    # Watchdog: a slide script stuck in a loop blocks every Playwright call forever, so a
+    # thread checks that each stage (load, action, screenshot) finishes in --step-timeout.
+    progress = {'t': time.monotonic(), 'stage': 'load'}
+
+    def tick(stage):
+        progress['t'], progress['stage'] = time.monotonic(), stage
+
+    def watchdog():
+        while True:
+            time.sleep(0.5)
+            if time.monotonic() - progress['t'] > a.step_timeout:
+                print(json.dumps({'shots': shots, 'real_errors': errs, 'size': '%dx%d' % (w, h),
+                                  'hang': True, 'stuck_at': progress['stage'],
+                                  'step_timeout_s': a.step_timeout}, indent=1), flush=True)
+                print('HANG: no progress for %gs at %s (a slide script may loop forever)'
+                      % (a.step_timeout, progress['stage']), file=sys.stderr, flush=True)
+                kill_descendants(os.getpid())   # the looping renderer outlives the driver otherwise
+                os._exit(1)
+
+    threading.Thread(target=watchdog, daemon=True).start()
+
     with sync_playwright() as p:
         b = p.chromium.launch(args=['--no-sandbox', '--disable-gpu'])
         pg = b.new_page(viewport={'width': w, 'height': h})
@@ -128,6 +172,7 @@ def main():
 
         def snap(name, action):
             png = '%s_%s.png' % (a.prefix, name)
+            tick('screenshot %s (after %s)' % (name, action))
             pg.screenshot(path=png)
             st = pg.evaluate(STATE_JS)
             rec = {'png': png, 'slide': st['slide'], 'step': st['step'], 'action': action}
@@ -147,11 +192,13 @@ def main():
         n = 0
         for _ in range(a.advances):
             n += 1
+            tick('advance %d (ArrowRight)' % n)
             pg.keyboard.press('ArrowRight')
             pg.wait_for_timeout(a.wait)
             snap('%02d' % n, 'right')
         for kind, val in actions:
             n += 1
+            tick('action %d (%s:%s)' % (n, kind, val))
             if kind == 'click':
                 pg.click(val)
             elif kind == 'key':
@@ -164,6 +211,7 @@ def main():
                     pg.wait_for_timeout(120)
             pg.wait_for_timeout(a.wait)
             snap('%02d' % n, '%s:%s' % (kind, val))
+        tick('closing browser')
         b.close()
 
     # web fonts fail offline -> system fallback; not a slide error

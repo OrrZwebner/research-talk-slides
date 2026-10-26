@@ -1,0 +1,13 @@
+<!-- Fixture: a slide whose script loops forever on the second key press, freezing the page
+     (as a buggy fragment did on 2026-10-26). shot.py with --step-timeout 5 must stop at
+     "advance 2", keep the entry and advance-1 shots (2 shots), print hang=true, exit 1. -->
+<section class="slide hang" data-section="T" data-title="Hang">
+  <h2 class="title">Hang</h2>
+  <p class="step">one</p><p class="step">two</p>
+  <script>
+  (function(){
+    var n=0;
+    document.addEventListener('keydown',function(){ n+=1; if(n>=2){ while(true){} } });
+  })();
+  </script>
+</section>
