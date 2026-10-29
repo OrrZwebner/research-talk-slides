@@ -11,15 +11,15 @@ description: >-
   than redrawn. Use for "conference talk / seminar / lab meeting / thesis defense slides in
   HTML", "research talk", "slide for my paper", "pipeline diagram slide with arrows",
   "step-by-step reveal", "drill-down slide", "overview slide that opens detail slides", "add a
-  slide to my talk deck", "fix the arrows on my slide", "the slide looks different on the
-  projector". For a .pptx file use a pptx skill instead.
+  slide to my talk deck", "fix the arrows on my slide". For a .pptx file use a pptx skill
+  instead.
 license: MIT
 compatibility: >-
   Python 3.8+. Screenshot verification needs Playwright with Chromium
   (pip install playwright && python -m playwright install chromium). The decks are plain HTML
   and open in any modern browser.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Research-talk slides
@@ -36,9 +36,12 @@ it, never re-style a slide from scratch.
 
 | Mode | When | Output |
 |---|---|---|
-| Single slide | one title + content (or one figure) | `<name>_fragment.html`, `<name>.html`, one PNG per reveal step |
-| Drill-down section | an overview whose components each open a detail slide | ONE fragment with overview + all detail sections → one deck file |
-| Deck stitch | several finished fragments in talk order | one deck file + a full-deck screenshot pass |
+| Single slide (P1) | one title + content | `<name>_fragment.html`, `<name>.html`, one PNG per reveal step |
+| Pipeline scheme (P3) | boxes joined by arrows, revealed stage by stage | as P1 |
+| Figure slide (P4) | one paper figure plus a reading panel | as P1 |
+| Drill-down section (P2) | an overview whose components each open a detail slide | ONE fragment with overview + all detail sections → one deck file |
+| Deck stitch (P5) | several finished fragments in talk order | one deck file + a full-deck screenshot pass |
+| Publish (P6) | a finished deck leaves the machine | the checked deck file |
 | Partial input | topic only; labels, wording or data missing | a reveal storyboard + questions; build only confirmed content |
 
 ## Procedure — one slide (P1)
@@ -47,17 +50,17 @@ it, never re-style a slide from scratch.
    data source; lean toward more questions, not fewer. Never fill a gap yourself.
 2. Draft a **reveal storyboard**: entry state + N steps in placement/flow order. Confirm label
    and text choices before authoring.
-3. Author `<name>_fragment.html`: one `<section class="slide <slidecls>" data-section=".."
+3. Author `<name>_fragment.html`: one `<section class="slide <slidecls>" data-section="N · Name"
    data-title="..">` with its own `<style>`/`<script>`. Scope every CSS rule under
    `.<slidecls>`; prefix ids and `@keyframes` with the slide class. Size in px or cqw/cqh only.
-4. Assemble:
-   `python3 <skill>/scripts/assemble.py <name>_fragment.html <name>.html`
-   Fix every item in `warnings` (duplicate ids, dangling `data-goto`, viewport units).
+   A computed slide is generated: edit its generator in `build/NN/` (BUILD_GUIDE §8).
+4. Assemble (with the talk's master, if it has one):
+   `python3 <skill>/scripts/assemble.py <name>_fragment.html <name>.html --master <master> --title "<talk>"`
+   Fix every item in `warnings`.
 5. Screenshot every step and **read every PNG**:
-   `python3 <skill>/scripts/shot.py <name>.html shots/<name> <N> --check`
-   Pass: entry correct; each advance reveals exactly the next bucket; arrows unchanged between
-   steps and not clipped; nothing in the bottom ~100px logo band; all inside one 1280×720
-   frame; `real_errors` empty and `check.pass` true (exit code 0).
+   `timeout 600 python3 <skill>/scripts/shot.py <name>.html shots/<name> --all --check --json shots/<name>.json`
+   Pass = the checklist in BUILD_GUIDE §6 (one bucket per advance, arrows still, safe area,
+   box fit at 1906×1000, no small text, formulas rendered, `check.pass` true, exit code 0).
 6. Re-run at one off-aspect size: add `--size 1024x768`. It must be the same picture,
    letterboxed.
 7. Iterate until all pass. Report the storyboard, the labels used and their source, which
@@ -67,13 +70,14 @@ it, never re-style a slide from scratch.
 
 1. Overview slide: `data-id="<hub>"`; each clickable component `data-goto="<detail-id>"`;
    each detail slide `data-id="<detail-id>"`. All in ONE fragment (navigation resolves only
-   within one file); place detail sections right after the overview.
+   within one file); place detail sections right after the overview (they are numbered
+   linearly, like any slide).
 2. Components show **name + icon only**. No "click to open" on screen; that goes in the
    speaker notes.
 3. The kit shows `‹ back` top-right (and Backspace); it returns to the overview fully revealed.
    Unrevealed components are not clickable.
 4. Verify as P1, plus the click path, e.g.
-   `shot.py deck.html shots/dd <N> --click '[data-goto=attn]' --then right --click '#back'`.
+   `python3 <skill>/scripts/shot.py deck.html shots/dd --all --check --click '[data-goto=attn]' --then right --click '#back'`.
 
 ## Procedure — pipeline scheme with arrows (P3)
 
@@ -83,79 +87,114 @@ filled-head `<marker>` in `#9aa3b2`; convert rects with `rectOf()`; compute arro
 (double rAF + ~400 ms, then on resize/slide activation only); per-step arrow groups toggled by
 **opacity only**; `.<slidecls> .step{transform:none}`. Within a row: right edge → left edge,
 gap ≈ 10px. Between rows: **entry arrow only** (~34px) into the next row's first box. Labels
-11px, static, ~10px above the arrow, clamped to x ∈ [70, 1210].
+12px, static, ~10px above the arrow, clamped to x ∈ [70, 1210]. Details: BUILD_GUIDE §4.
 
 ## Procedure — figure slide (P4)
 
 Embed the paper's figure image as-is (data URI or relative path); never redraw it. A
-one-figure slide = figure + a side reading panel that step-reveals the marks to read.
+one-figure slide = figure + a side reading panel that step-reveals the marks to read. Results
+plots copy the project's figures exactly and name dataset and n (BUILD_GUIDE §3). An SVG from a
+page: lift the text, keep the geometry (BUILD_GUIDE §9.2).
 
 ## Procedure — deck stitch (P5)
 
 Author and verify fragments independently (parallel subagents are fine; a drill-down section
-is one unit). Then `assemble.py -o deck.html f1.html f2.html …` in talk order, fix warnings,
-and run `shot.py` across the whole deck (`--start K` jumps to slide K).
+is one unit). Then stitch in talk order and fix every warning:
+`python3 <skill>/scripts/assemble.py -o talk.html --master fragments/00-master_fragment.html --order ORDER.txt
+--allow-missing --title "<talk>" --body-class "slide-numbers progress"` (options and lints:
+BUILD_GUIDE §7). `--allow-missing` is for mid-build stitches only. Run
+`python3 <skill>/scripts/shot.py talk.html shots/deck --all --check` across the whole deck
+(`--start K` jumps to slide K).
+
+## Procedure — publish (P6)
+
+Before the deck leaves the machine: self-contained (no local paths; size within the host's
+limit), no U+FFFD, a personal-data and logo scan (notes ship inside the HTML), `--title` set,
+a final stitch without `--allow-missing` (`"skipped"` empty, no skipped-fragment warning), and a
+final `shot.py --all --check`. Commands: BUILD_GUIDE §10.
 
 ## Orchestrating a whole talk (agents)
 
-For more than a slide or two, the main agent orchestrates and the plugin's agents do the work:
-`talk-planner` turns the author's content into storyboards in the talk's PLAN file and returns
-the open questions (relay them; build nothing with a question open); `talk-builder` builds one
-confirmed storyboard per agent, several in parallel; `talk-verifier` then checks mechanics,
-clarity, flow and facts on the built slides and again on the stitched deck. Relay its findings
-to the author; fixes go back through a builder, never through the verifier.
+For more than a slide or two, the main agent orchestrates and the plugin's agents do the work
+(Claude Code plugin install only; otherwise run the same roles yourself, in order).
+The talk record is **PRD.md** (the author's words, verbatim, never reworded), **SPEC.md**
+(storyboards; superseded ones go to `SPEC-archive.md`) and **TBD.md** (open questions); a
+small talk may keep them in one PLAN file.
+- `talk-planner` turns dictated content into storyboards in SPEC.md and returns the open
+  questions (also written to TBD.md). Relay them to the author; it plans nothing before the
+  author has dictated content.
+- `talk-builder` builds one confirmed storyboard per agent, several in parallel. **STOP means
+  stop**: while a question is open it builds nothing, not even a default.
+- `talk-verifier` checks mechanics, clarity, flow and facts on the built slides and again on
+  the stitched deck; in **compliance mode** it maps every author input in PRD.md to slide ·
+  step · PNG · status. Relay its findings; fixes go back through a builder, never the verifier.
+- A report longer than about 30 lines goes to a file; agents return a summary plus its path.
+- Several sessions on one deck: one owner per section; only the orchestrator edits ORDER,
+  master and stitch, and publishes (BUILD_GUIDE §7.3).
 
 ## Non-negotiables
 
 1. Build against `assets/kit.html`; never re-style a slide from scratch.
 2. Master: white background, one large top-left title (Open Sans 48px), **no kicker**, two
-   corner logo slots; keep content above canvas y = 620.
+   corner logo slots (BUILD_GUIDE §2.1); keep content above canvas y = 620.
 3. Fixed 1280×720 canvas scaled by `transform`; px or cqw/cqh only (1cqw = 12.8px,
    1cqh = 7.2px), never vw/vh/dvh/svh.
 4. Step reveal: non-`.step` shows on entry; one bucket per advance; group with
-   `data-step="k"`; reveal in flow order; not every word gets a step.
-5. Arrows: one overlay, computed once, opacity-only reveal, mid-gray with filled heads,
-   entry-arrow-only between rows, small labels with a gap.
+   `data-step="k"`. **Reveal order follows the DOM**, not the `data-step` number.
+5. Arrows: one overlay, computed once, opacity-only reveal; details in P3 and BUILD_GUIDE §4.
 6. Internal padding on every box; shrink the font before anything clips.
-7. Minimal text: never invent labels, role text or UI hints. Ask.
+7. Minimal text: never invent labels, role text, UI hints, "?", status markers or sizes. Ask.
 8. Real data; mark illustrative values on the slide; embed figures, don't redraw.
 9. Verify: screenshot every step + one off-aspect size; read every PNG.
+
+Content rules (detail and examples in BUILD_GUIDE §3):
+
+10. Titles plain, direct, exact and technical; never catchy.
+11. Picture over text: an explanatory sentence becomes a scheme, symbol or formula.
+12. A process gets one reveal step per stage; never all at once, never padding steps.
+13. Every symbol is keyed on its slide, in the step it appears: a muted line ≥ 16px; ≤ 4 per slide.
+14. Every arrow, dashed line and legend entry is explained on screen; prefer labels on the drawing.
+15. Every number on screen shows its definition (a formula or a comparison).
+16. One visual language: reuse the deck's components through a shared generator module.
+17. Notation and formulas follow the source and are checked against it.
+18. Results figures copied exactly, with dataset and n on every plot and a y-axis on every panel.
+19. Sections labelled "N · Name" and contiguous; notes cite other slides by title, never number.
 
 ## Judgment calls
 
 - Wording not given → ask; meanwhile show name + icon only.
 - Illustrative numbers → label them ("illustrative") and ask before presenting specifics.
-- Slow conceptual step (e.g. splitting text into units) → stagger chips ~0.3 s inside one step.
-- Matrices/vectors → real-looking float grids with `…`/`⋮` and highlighted rows; neural
-  blocks → hidden layers only, several nodes per column; probability readouts →
-  token-aligned rows, `0.58` format, `P` header, argmax highlighted, no bars.
-- A transformation slide keeps item counts unless the transform changes them (logits and
-  probabilities have the same length).
-- One semantic color per concept (`--en` navy, `--sa` blue, `--bo` orange, `--gr` green),
+- A model drawing (tokens × layers grid, matrices, neural blocks, probability readouts, string
+  tokens in quotes) → follow `references/ml-visuals.md`.
+- One semantic colour per concept (`--en` navy, `--sa` blue, `--bo` orange, `--gr` green),
   reused everywhere. Use kit tokens only; undefined variables silently drop borders.
-- Fragment JS: self-contained IIFE, find its slide with
-  `document.currentScript.closest('.slide')`, react to `kit:step`/`kit:unstep` or the slide's
-  `active` class; never call kit functions at load (the kit script runs after fragments).
-
-## Logos (hidden by default)
-
-Set them once in a `<style>` inside a fragment, or edit the kit:
-`:root{--logo-left:url("data:image/png;base64,…"); --logo-right:url("right.png")}`.
-Or replace a slot `<div>` in the kit with `<img class="brand brand-left" src="…">`. Embed at
-≥ 2× display width (left slot is 192px wide). `<body class="show-logo-slots">` outlines the
-empty slots while laying out.
+- Maths → pre-render TeX at build time with `scripts/tex2svg.py`; no runtime MathJax.
+- Labels on a busy figure → `.halo`. A spotlight caption that would land on text →
+  `data-caption-lane`. One spotlight at a time, only where it adds something.
+- Fragment JS → self-contained IIFE; rules in BUILD_GUIDE §2.6.
 
 ## Resources
 
-- `assets/kit.html` — the kit (~19 KB). Read it once to learn the classes (`.panel`, `.chip`,
-  `.counter`, `.card`, `.sub`) and the `kit:step` event.
+- `assets/kit.html` — the kit (~35 KB). Read it once to learn the classes (`.panel`, `.chip`,
+  `.counter`, `.card`, `.sub`, `.halo`) and the `kit:step` event. Optional chrome:
+  `slide-numbers` and `progress` body classes (BUILD_GUIDE §2.7).
 - `references/BUILD_GUIDE.md` — read before authoring a first slide: kit architecture,
-  reveal engine, arrows, verify workflow, and the do-not-regress table of past defects.
+  reveal engine and click guard, content rules, arrows, spotlight, verify workflow, stitch and
+  lints, generated fragments, publish, and the do-not-regress table of past defects.
+- `references/ml-visuals.md` — conventions for model drawings; read before any ML slide.
 - `references/example_pipeline_arrows_fragment.html` — copyable P3 pattern.
 - `references/example_drilldown_fragment.html` — copyable P2 pattern (hub + detail).
-- `scripts/assemble.py` — `FRAGMENT OUT` or `-o OUT FRAG…`; `--kit` overrides the kit.
-- `scripts/shot.py` — `DECK PREFIX [N]`, `--size WxH`, `--start K`, `--click SEL`,
-  `--then ACTION`, `--check`, `--step-timeout S` (default 30: a slide script stuck in a loop
-  ends the run with `hang`/`stuck_at` instead of freezing it); exit 1 on real errors, a failed
-  check or a hang, 2 if Playwright is
-  missing (tell the user the install command rather than skipping verification silently).
+- `references/example_spotlight_fragment.html` — built-in spotlight: one `<i class="spot step"
+  data-spot="SEL">` per step dims the slide except SEL, rings it (optional sub-rect, caption,
+  caption lane); API and rules in BUILD_GUIDE §5.
+- `scripts/assemble.py` — `FRAGMENT OUT` or `-o OUT FRAG…`; `--kit`, `--title`,
+  `--body-class`, `--master`, `--order` (+ `--allow-missing`), `--asset-base` (BUILD_GUIDE §7).
+- `scripts/shot.py` — `DECK PREFIX --all` (preferred) or `DECK PREFIX [N]` (default 8),
+  `--size WxH`, `--start K`, `--click SEL`, `--then ACTION`, `--check` (+ `--check-size`),
+  `--json FILE`, `--wait MS` (default 1200), `--step-timeout S` (default 30); exit 1 on real
+  errors, a failed check or a hang, 2 if Playwright is missing (tell the user the install command
+  rather than skipping verification silently; no root: BUILD_GUIDE §6.2).
+- `scripts/tex2svg.py` — pre-renders TeX to static inline SVG (`tex2svg.py '\alpha_i'
+  --display`, or `--json IN.json OUT.json`; `--mathjax URL` overrides the CDN; exit 1 if a formula
+  fails to render). **Needs the network** at build time (MathJax from
+  jsDelivr) and Playwright; the output works offline and draws in `currentColor`.
