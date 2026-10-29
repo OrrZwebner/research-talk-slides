@@ -1,0 +1,72 @@
+<!--
+  PATTERN · spotlight (BUILD_GUIDE "Spotlight"). Copy, rename the section class (.spx), edit.
+  - The kit draws the spotlight; the fragment only places markers. No spotlight CSS/JS here.
+  - One marker per spotlight step:
+      <i class="spot step" data-step="k" data-spot="SELECTOR inside this slide"
+         data-spot-rect="x,y,w,h"  data-caption="author's text"  data-caption-pos="above"
+         data-pad="8"  data-tone="sa"></i>            (all but data-spot optional)
+  - Lit while its bucket is the last one revealed: the next step clears it, ← restores it.
+  - Bucket order is DOM order, not the data-step number: put each marker where its step
+    falls in the flow (here: after the figure row, before the takeaway).
+  - data-spot-rect = fractions 0-1 of the target; for an <img> with object-fit:contain they
+    refer to the drawn picture, so read them off the source figure.
+  - data-ring="none" (no caption, no tone) cuts a hole without ring, leader or caption:
+    context that stays bright beside a ringed marker in the same bucket (step 4 here).
+  - Captions come from the author only. Values and the figure are illustrative placeholders.
+-->
+<section class="slide spx" data-section="04" data-title="Spotlight pattern">
+  <h2 class="title">Spotlight pattern</h2>
+  <style>
+  .spx h2.title{margin-bottom:18px}
+  .spx .spx-row{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .spx .spx-box{height:92px;display:flex;align-items:center;justify-content:center;
+       font-family:var(--title);font-weight:700;font-size:24px;color:var(--en);background:var(--panel);
+       border:1.5px solid var(--line);border-radius:12px;box-shadow:0 2px 9px rgba(20,30,50,.06)}
+  .spx .spx-low{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;height:300px;margin-top:22px}
+  .spx .spx-card{display:flex;flex-direction:column;min-height:0;background:var(--panel);
+       border:1.5px solid var(--line);border-radius:12px;padding:12px 16px 10px}
+  .spx .spx-card img,.spx .spx-card svg{flex:1;min-height:0;width:100%;display:block}
+  .spx .spx-card img{object-fit:contain}       /* letterboxed: the kit maps fractions to the picture */
+  .spx .spx-ill{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;text-align:right}
+  .spx .spx-bar rect{fill:var(--sa)}
+  .spx .spx-base{stroke:var(--line);stroke-width:2}
+  .spx .spx-take{margin-top:18px;font-family:var(--serif);font-size:20px}
+  </style>
+
+  <div class="spx-row">
+    <div class="spx-box b1">Input</div>
+    <div class="spx-box b2">Model</div>
+    <div class="spx-box b3">Output</div>
+  </div>
+
+  <div class="spx-low">
+    <div class="spx-card spx-fig step" data-step="1">
+      <img alt="Placeholder heat grid, 6 columns by 4 rows (illustrative)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23fff'/%3E%3Crect x='2' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.15'/%3E%3Crect x='102' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.25'/%3E%3Crect x='202' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.35'/%3E%3Crect x='302' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.30'/%3E%3Crect x='402' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.45'/%3E%3Crect x='502' y='2' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.20'/%3E%3Crect x='2' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.20'/%3E%3Crect x='102' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.30'/%3E%3Crect x='202' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.50'/%3E%3Crect x='302' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.55'/%3E%3Crect x='402' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.95'/%3E%3Crect x='502' y='102' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.40'/%3E%3Crect x='2' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.10'/%3E%3Crect x='102' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.20'/%3E%3Crect x='202' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.30'/%3E%3Crect x='302' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.35'/%3E%3Crect x='402' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.60'/%3E%3Crect x='502' y='202' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.25'/%3E%3Crect x='2' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.05'/%3E%3Crect x='102' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.15'/%3E%3Crect x='202' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.20'/%3E%3Crect x='302' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.25'/%3E%3Crect x='402' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.35'/%3E%3Crect x='502' y='302' width='96' height='96' rx='6' fill='%233b7dd8' fill-opacity='0.15'/%3E%3C/svg%3E">
+      <div class="spx-ill">figure placeholder · illustrative</div>
+    </div>
+    <div class="spx-card spx-chart step" data-step="1">
+      <svg viewBox="0 0 400 220" aria-label="Placeholder bar chart (illustrative)">
+        <line class="spx-base" x1="14" y1="200" x2="386" y2="200"/>
+        <g class="spx-past">
+          <g class="spx-bar spx-b1"><rect x="30" y="130" width="48" height="70" rx="4"/></g>
+          <g class="spx-bar spx-b2"><rect x="102" y="90" width="48" height="110" rx="4"/></g>
+          <g class="spx-bar spx-b3"><rect x="174" y="110" width="48" height="90" rx="4"/></g>
+        </g>
+        <g class="spx-bar spx-b4"><rect x="246" y="40" width="48" height="160" rx="4"/></g>
+        <g class="spx-bar spx-b5"><rect x="318" y="140" width="48" height="60" rx="4"/></g>
+      </svg>
+      <div class="spx-ill">chart placeholder · illustrative</div>
+    </div>
+  </div>
+
+  <!-- spotlight markers, in flow order (they take no space) -->
+  <i class="spot step" data-step="2" data-spot=".spx-box.b2" data-pad="10"></i>
+  <i class="spot step" data-step="3" data-spot=".spx-fig img" data-spot-rect="0.6667,0.25,0.1667,0.25"
+     data-pad="4" data-caption="one cell of the figure"></i>
+  <i class="spot step" data-step="4" data-spot=".spx-b4" data-pad="6" data-caption="an SVG group" data-tone="sa"></i>
+  <i class="spot step" data-step="4" data-spot=".spx-past" data-pad="6" data-ring="none"></i>  <!-- same bucket: bars 1-3 stay bright, no ring -->
+
+  <div class="panel en spx-take step" data-step="5">Takeaway: the author's sentence goes here.</div>
+
+  <aside class="notes-src">Entry: three boxes. Step 1: the figure and the chart. Step 2: spotlight on Model, ring only. Step 3: spotlight on one cell of the figure (a fractional sub-rectangle of the image) with a caption. Step 4: spotlight on one bar (an SVG group) with a caption; the earlier bars stay bright through a ring-less hole. Step 5: the takeaway appears and the spotlight clears. The figure, chart and values are illustrative placeholders.</aside>
+</section>

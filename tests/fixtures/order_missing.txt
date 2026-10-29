@@ -1,0 +1,4 @@
+# Fixture: the second entry does not exist
+one_slide.html
+not_built_yet.html
+clean.html

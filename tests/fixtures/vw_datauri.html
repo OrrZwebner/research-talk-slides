@@ -1,0 +1,7 @@
+<!-- Fixture: the base64 of the data: URIs spells "5vw" and "9vh" (followed by "/" and a quote);
+     the only real viewport unit is 20vh in the style. Expected: one warning ending ": 20vh". -->
+<section class="slide vd" data-section="1" data-title="Data URI">
+  <style>.vd .b{height:20vh;background:url("data:image/png;base64,iVBORw0KGgo5vw/AAA9vh")}</style>
+  <img alt="" src="data:image/png;base64,iVBORw0KGgoAAAA5vw/AAAA9vh+">
+  <div class="b"></div>
+</section>

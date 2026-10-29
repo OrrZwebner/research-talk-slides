@@ -1,0 +1,21 @@
+<!-- Fixture: fragment CSS. Unscoped kit-class rules: ".chip", ".slide .panel .name", ".chip.sa",
+     ".card" (inside @media) and ".step.shown"; ":hover" stays in the reported selector. Scoped or not kit: ".kc .chip", "#kc1 .panel",
+     ".kc-own", "section.kc .btn", "[data-id=kc] .card", the commented "/* .btn{} */" and the
+     @keyframes steps. Expected: one warning naming this file and listing exactly
+     .chip, .slide .panel .name, .chip.sa:hover, .card, .step.shown. -->
+<section class="slide kc" id="kc1" data-section="1" data-title="Kit CSS">
+  <style>
+    /* .btn{color:red} */
+    .chip{font-size:20px}
+    .slide .panel .name, .kc .chip{color:red}
+    .chip.sa:hover{color:blue}
+    #kc1 .panel{padding:0}
+    .kc-own{color:green}
+    section.kc .btn{color:red}
+    [data-id=kc] .card{color:red}
+    @media (min-width:100px){ .card{margin:0} }
+    @keyframes kcpulse{ from{opacity:0} to{opacity:1} }
+    .step.shown{opacity:.9}
+  </style>
+  <div class="chip">x</div>
+</section>

@@ -26,9 +26,10 @@ jobs:
 
       - name: Scripts compile and print --help
         run: |
-          python -m py_compile skills/research-talk-slides/scripts/assemble.py skills/research-talk-slides/scripts/shot.py
+          python -m py_compile skills/research-talk-slides/scripts/assemble.py skills/research-talk-slides/scripts/shot.py skills/research-talk-slides/scripts/tex2svg.py tools/make_demo_gif.py
           python skills/research-talk-slides/scripts/assemble.py --help > /dev/null
           python skills/research-talk-slides/scripts/shot.py --help > /dev/null
+          python skills/research-talk-slides/scripts/tex2svg.py --help > /dev/null
 
       - name: Install Playwright + Chromium (for shot.py --check)
         run: |
@@ -36,7 +37,7 @@ jobs:
           python -m pip install playwright
           python -m playwright install --with-deps chromium
 
-      - name: Tests (assemble.py fixtures + shot.py --check at 1280x720 and 1024x768)
+      - name: Tests (assemble.py fixtures and lints; kit and shot.py --check at 1280x720, 1024x768, 1906x1000)
         env:
           REQUIRE_PLAYWRIGHT: "1"
         run: python -m unittest discover -s tests -v

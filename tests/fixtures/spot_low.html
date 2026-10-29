@@ -1,0 +1,9 @@
+<!-- Synthetic fixture for shot.py --check: the target ends at canvas y 612 (inside the safe area),
+     pad 12 would put the ring at 624. The kit clamps the hole bottom to max(616, 612) = 616, and
+     the caption asked "below" has no room, so it falls back to above. Expected: check passes. -->
+<section class="slide slw" data-title="Low target">
+  <h2 class="title">Low target</h2>
+  <style>.slw .t{position:absolute;left:300px;top:520px;width:400px;height:92px;background:#dde}</style>
+  <div class="t">T</div>
+  <i class="spot step" data-spot=".slw .t" data-pad="12" data-caption="caption" data-caption-pos="below"></i>
+</section>

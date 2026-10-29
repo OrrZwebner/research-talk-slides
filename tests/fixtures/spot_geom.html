@@ -1,0 +1,27 @@
+<!-- Synthetic fixture for the kit spotlight. Absolute boxes give known canvas geometry:
+       .a  100,200 300x120 (revealed at bucket 1, so it is measured while unrevealed)
+       .b  100,400 300x100
+       img.fig 600,160 500x300, natural 600x400, object-fit:contain -> drawn picture
+               s = min(500/600, 300/400) = 0.75 -> 450x300 at x 600+(500-450)/2 = 625, y 160
+     Buckets (DOM order): 1 .a appears | 2 spot .a pad 10 -> ring 90,190 320x140
+       | 3 spot img.fig rect 0.5,0.25,0.25,0.5 pad 0 + caption -> ring 850,235 112.5x150
+       | 4 spots .a and .b (pad 0) share one veil -> rings 100,200 300x120 and 100,400 300x100
+       | 5 box .c appears -> nothing lit. -->
+<section class="slide sg1" data-title="Spot geometry">
+  <h2 class="title">Spot geometry</h2>
+  <style>
+  .sg1 .a,.sg1 .b,.sg1 .c,.sg1 .fig{position:absolute;margin:0}
+  .sg1 .a{left:100px;top:200px;width:300px;height:120px;background:#dde}
+  .sg1 .b{left:100px;top:400px;width:300px;height:100px;background:#ede}
+  .sg1 .c{left:600px;top:500px;width:200px;height:80px;background:#eed}
+  .sg1 .fig{left:600px;top:160px;width:500px;height:300px;object-fit:contain}
+  </style>
+  <div class="a step" data-step="1">A</div>
+  <div class="b">B</div>
+  <img class="fig" alt="placeholder" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23cde'/%3E%3C/svg%3E">
+  <i class="spot step" data-step="2" data-spot=".a" data-pad="10"></i>
+  <i class="spot step" data-step="3" data-spot=".fig" data-spot-rect="0.5,0.25,0.25,0.5" data-pad="0" data-caption="cap"></i>
+  <i class="spot step" data-step="4" data-spot=".a" data-pad="0"></i>
+  <i class="spot step" data-step="4" data-spot=".b" data-pad="0"></i>
+  <div class="c step" data-step="5">C</div>
+</section>

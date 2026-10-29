@@ -7,7 +7,7 @@
     (+ resize / slide activation), never per step; kit:step only toggles opacity.
   - .pipe .step{transform:none} keeps geometry fixed between clicks.
   - Between rows: entry arrow only, into the first box of the next row.
-  - Labels 11px, static, ~12px above the arrow, clamped to x in [70,1210].
+  - Labels 12px, static, ~12px above the arrow, clamped to x in [70,1210].
   Values are schematic.
 -->
 <section class="slide pipe" data-section="02" data-title="From text to next token">
@@ -47,7 +47,7 @@
        border-radius:12px;padding:12px 22px;box-shadow:0 4px 14px rgba(90,143,105,.35)}
   .pipe .arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
   .pipe .arrows .ar{stroke:#9aa3b2;stroke-width:3;fill:none}
-  .pipe .arrows .arlab{font-family:var(--mono);font-size:11px;fill:#6b7480;text-anchor:middle;font-weight:600}
+  .pipe .arrows .arlab{font-family:var(--mono);font-size:12px;fill:#6b7480;text-anchor:middle;font-weight:600}
   @media (prefers-reduced-motion:reduce){.pipe .step.shown .tk{animation:none;opacity:1;transform:none}}
   </style>
 

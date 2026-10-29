@@ -1,0 +1,13 @@
+<!-- Fixture for the small-text warning (canvas px): .a is 10 px HTML text; .s is 24 px SVG text in
+     a viewBox drawn at 1/4 scale (6 px); .z is 14 px text inside transform:scale(.5) (7 px);
+     .ok is 16 px. Expected: three small_text entries, px 10, 6 and 7; the check still passes. -->
+<section class="slide st" data-section="1" data-title="Small"><h2 class="title">Small</h2>
+  <style>.st .a{position:absolute;left:100px;top:200px;font-size:10px}
+  .st .zw{position:absolute;left:100px;top:300px;transform:scale(.5);transform-origin:0 0}.st .z{font-size:14px}
+  .st .ok{position:absolute;left:100px;top:400px;font-size:16px}
+  .st svg{position:absolute;left:600px;top:200px;width:200px;height:100px}</style>
+  <div class="a">ten</div>
+  <div class="zw"><span class="z">seven</span></div>
+  <div class="ok">sixteen</div>
+  <svg viewBox="0 0 800 400"><text class="s" x="10" y="100" font-size="24">six</text></svg>
+</section>

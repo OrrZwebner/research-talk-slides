@@ -33,16 +33,34 @@
   <body> to outline the empty slots while laying out a slide.
 
   HOW SLIDES WORK
-    * A slide is  <section class="slide" data-section="NN" data-title="...">.
+    * A slide is  <section class="slide" data-section="N · Name" data-title="...">.
     * Non-.step content shows on entry; .step elements reveal one per advance
       (presenter build). Group elements into one step with data-step="k".
     * Speaker notes: <aside class="notes-src">...</aside> inside the slide.
-  NAV  : →/click/next = reveal next step else next slide; ←/prev = reverse.
+  NAV  : → / click / space = reveal next step else next slide; ← = reverse.
          O = section map · N = notes · F = fullscreen · dots = jump.
+         The key hint shows on load and fades after the first navigation key or
+         click; ? (or H) toggles it back.
   ANIM HOOK: on reveal a 'kit:step' event fires on document (detail{slide,index,els});
          'kit:unstep' on reverse. Prefer pure-CSS reveals (animate on .step.shown).
   DRILL-DOWN: a component with data-goto="ID" opens the slide with data-id="ID";
          '‹ back' (or Backspace) returns to the overview, fully revealed.
+  SPOTLIGHT: <i class="spot step" data-step="k" data-spot="SELECTOR"></i> dims the
+         slide except SELECTOR and rings it while bucket k is the last one revealed.
+         Optional: data-spot-rect="x,y,w,h" (fractions of the target), data-caption,
+         data-caption-pos, data-pad, data-tone, data-ring="none" (hole, no ring),
+         data-caption-lane="top|bottom" (caption in a fixed band at the top or bottom
+         of the canvas, clear of title and subtitle), data-veil-title (whiten the slide
+         title too; by default it stays bright). Full API: BUILD_GUIDE.md "Spotlight".
+  OPTIONS (classes on <body>, all off by default):
+    slide-numbers  running slide number in the logo band, by DOM order (detail slides
+                   count); the first (title) slide counts as 1 and shows none, nor does
+                   a slide with data-nonum. Place it with --num-right / --num-bottom.
+    progress       step-aware bar along the bottom edge (advances per slide and per
+                   reveal step, hidden on the title slide); replaces the top bar and
+                   the side dots.
+  TEXT OVER FIGURES: class="halo" outlines text in white (SVG <text> via stroke,
+         HTML via text-shadow) so it stays legible on a busy figure.
   ============================================================================
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,6 +77,10 @@
   --serif:'Spectral',Georgia,serif;
   --mono:'JetBrains Mono',monospace;
   --logo-left:none; --logo-right:none;               /* logo slots: hidden until set */
+  --spot-dim:rgba(255,255,255,.72);                  /* spotlight veil: whitens the rest */
+  --spot-ring:var(--bo); --spot-lead:#9aa3b2;        /* spotlight ring; leader = arrow gray */
+  --num-right:170px; --num-bottom:36px;              /* slide number: left of the right logo */
+  --halo:#fff;                                       /* .halo outline colour */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#fff;color:var(--ink);font-family:var(--display)}
@@ -73,6 +95,17 @@ html,body{height:100%;overflow:hidden;background:#fff;color:var(--ink);font-fami
 .nav-dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:55}
 .nav-dots button{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;cursor:pointer;padding:0;opacity:.45;transition:.25s}
 .nav-dots button.active{background:var(--ink);opacity:1;transform:scale(1.25)}
+
+/* ---- options: running slide number, step-aware progress bar (body classes) ---- */
+#kit-num{display:none;position:absolute;right:var(--num-right);bottom:var(--num-bottom);z-index:41;
+  font:600 15px/1 var(--mono);color:var(--muted);pointer-events:none}
+body.slide-numbers #kit-num.on{display:block}
+#kit-bar{display:none;position:absolute;left:0;right:0;bottom:0;height:6px;background:rgba(27,42,74,.08);
+  z-index:45;pointer-events:none;transition:opacity .3s ease}
+#kit-bar>i{display:block;height:100%;width:0;background:var(--en);transition:width .35s ease}
+#kit-bar.off{opacity:0}
+body.progress #kit-bar{display:block}
+body.progress #prog,body.progress #dots{display:none}
 
 /* ---- slides ---- */
 .slide{position:absolute;inset:0;overflow:hidden;
@@ -92,7 +125,7 @@ h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
 .step{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;will-change:opacity,transform}
 .step.shown{opacity:1;transform:none}
 .step:not(.shown){pointer-events:none}   /* unrevealed components are not clickable */
-@media (prefers-reduced-motion:reduce){.step{transition:none}}
+@media (prefers-reduced-motion:reduce){.step,#hint{transition:none}}
 
 /* ---- panels / counters / chips ---- */
 .arena{display:flex;flex-direction:column;gap:14px;margin-top:12px}
@@ -117,6 +150,10 @@ h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
 .chip.bo{background:#fdf0e5;border-color:#f6d9bf;color:var(--bo)}
 @keyframes pop{0%{opacity:0;transform:scale(.55) translateY(10px)}60%{opacity:1}100%{opacity:1;transform:scale(1) translateY(0)}}
 
+/* ---- text over figures: white outline ---- */
+.halo{text-shadow:0 0 2px var(--halo),0 0 2px var(--halo),0 0 3px var(--halo),0 0 4px var(--halo)}
+svg .halo,text.halo{text-shadow:none;paint-order:stroke fill;stroke:var(--halo);stroke-width:4px;stroke-linejoin:round}
+
 /* ---- buttons / cards ---- */
 .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1.5px solid var(--ink);background:var(--ink);
   color:#fff;padding:9px 16px;border-radius:8px;cursor:pointer;transition:.2s}
@@ -139,7 +176,8 @@ h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
 .show-logo-slots .logo-slot{outline:1.5px dashed #c9ced8;outline-offset:2px;border-radius:6px}
 
 /* ---- chrome: hint, copy ---- */
-#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;color:var(--muted);font-size:11.5px;z-index:40;font-family:var(--mono);opacity:.7;white-space:nowrap}
+#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;color:var(--muted);font-size:11.5px;z-index:40;font-family:var(--mono);opacity:.7;white-space:nowrap;transition:opacity .4s ease}
+#hint.away{opacity:0}   /* after the first navigation key or click; ? or H brings it back */
 #hint b{color:var(--bo)}
 .copybtn{background:var(--panel);border:1px solid var(--line);border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--muted);padding:2px 7px}
 .copybtn:hover{border-color:var(--sa);color:var(--sa)}
@@ -168,6 +206,24 @@ h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
   color:var(--ink);background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;
   padding:7px 13px;cursor:pointer;display:none;box-shadow:0 2px 8px rgba(20,30,50,.1)}
 #back.show{display:block}
+
+/* ---- spotlight: veil + ring (+ caption, leader) drawn by the engine from .spot markers ---- */
+.spot[data-spot]{display:none!important}   /* a marker only: never takes layout space */
+/* geometry is measured once, so a spotlight slide reveals by opacity only; transform is left out
+   of the transition so adding .has-spot at load does not slide the steps while they are measured */
+.has-spot .step{transform:none;transition:opacity .5s ease}
+.spot-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:35}
+.spot-g,.spot-cap{opacity:0;transition:opacity .35s ease}
+.spot-g.on,.spot-cap.on{opacity:1}
+.spot-veil{fill:var(--spot-dim)}
+.spot-ring{fill:none;stroke:var(--spot-c,var(--spot-ring));stroke-width:3}
+.spot-lead{fill:none;stroke:var(--spot-lead);stroke-width:2}
+.spot-ah{fill:var(--spot-lead)}
+.spot-cap{position:absolute;left:0;top:0;z-index:36;width:max-content;max-width:360px;pointer-events:none;
+  font-family:var(--display);font-size:16px;font-weight:600;line-height:1.3;color:var(--ink);
+  background:var(--panel);border:2px solid var(--spot-c,var(--spot-ring));border-radius:8px;
+  padding:6px 12px;box-shadow:0 3px 10px rgba(20,30,50,.12)}
+@media (prefers-reduced-motion:reduce){.has-spot .step,.spot-g,.spot-cap{transition:none}}
 </style>
 </head>
 <body>
@@ -177,8 +233,10 @@ h2{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.01em}
   <div class="brand brand-left logo-slot" data-logo="left"></div>
   <div class="brand brand-right logo-slot" data-logo="right"></div>
   <div class="progress-bar" id="prog"></div>
+  <div id="kit-bar"><i></i></div>
+  <div id="kit-num"></div>
   <nav class="nav-dots" id="dots"></nav>
-  <div id="hint">← → <b>reveal</b> / navigate · O map · N notes · F fullscreen</div>
+  <div id="hint">← → <b>reveal</b> / navigate · O map · N notes · F fullscreen · ? keys</div>
   <div id="overview"><h2><span>Jump to a slide</span></h2><div class="ovgrid" id="ovgrid"></div></div>
   <div id="notes"><div class="nlabel">Speaker notes</div><div id="notesbody"></div></div>
   <div id="back">‹ back</div>
@@ -241,18 +299,29 @@ function buckets(slide){
 }
 function revealStep(slide){ const bs=buckets(slide); const p=slide._p||0; if(p>=bs.length) return false;
   bs[p].els.forEach(el=>{ el.classList.add('shown'); el.dispatchEvent(new CustomEvent('step:show',{bubbles:true,detail:{index:p}})); });
-  document.dispatchEvent(new CustomEvent('kit:step',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p+1; return true; }
+  document.dispatchEvent(new CustomEvent('kit:step',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p+1; spotSync(slide); barSync(); return true; }
 function hideStep(slide){ const bs=buckets(slide); let p=slide._p||0; if(p<=0) return false; p--;
   bs[p].els.forEach(el=>{ el.classList.remove('shown'); el.dispatchEvent(new CustomEvent('step:hide',{bubbles:true,detail:{index:p}})); });
-  document.dispatchEvent(new CustomEvent('kit:unstep',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p; return true; }
+  document.dispatchEvent(new CustomEvent('kit:unstep',{detail:{slide,index:p,els:bs[p].els}})); slide._p=p; spotSync(slide); barSync(); return true; }
 function resetSteps(slide,all){ const bs=buckets(slide); bs.forEach(g=>g.els.forEach(el=>el.classList.toggle('shown',!!all))); slide._p=all?bs.length:0; }
 
 function go(n,all){ if(n<0||n>=slides.length) return;
+  spotSync(slides[cur],true);
   slides[cur].classList.remove('active'); if(dots[cur])dots[cur].classList.remove('active');
   cur=n; resetSteps(slides[cur],all);
   slides[cur].classList.add('active'); if(dots[cur])dots[cur].classList.add('active');
+  spotSync(slides[cur]); spotSchedule(slides[cur]);
   prog.style.width=(slides.length<2?100:(cur/(slides.length-1)*100))+'%';
+  kitNum.textContent=cur+1; kitNum.classList.toggle('on',cur>0&&slides[cur].dataset.nonum==null); barSync();
   if(notesEl.classList.contains('show')) renderNotes(); }
+/* body.progress bar: position = (reveal steps of all earlier slides + slides before + steps shown
+   here) / (all steps + all slides - 1), so it moves on every click; hidden on the title slide */
+const kitNum=document.getElementById('kit-num'), kitBar=document.getElementById('kit-bar'), barOff=[];
+let barTotal=0;
+function barInit(){ barTotal=0; slides.forEach((s,i)=>{ barOff[i]=barTotal; barTotal+=buckets(s).length+1; }); }
+function barSync(){ if(!kitBar||!barOff.length) return;
+  kitBar.firstElementChild.style.width=(barTotal>1?(barOff[cur]+(slides[cur]._p||0))/(barTotal-1)*100:100)+'%';
+  kitBar.classList.toggle('off',cur===0); }
 function advance(){ if(revealStep(slides[cur])) return; if(cur<slides.length-1) go(cur+1,false); }
 function back(){ if(hideStep(slides[cur])) return; if(cur>0) go(cur-1,true); }
 function renderNotes(){ const s=slides[cur].querySelector('.notes-src'); notesBody.textContent=s?s.textContent.trim():'(no notes)'; }
@@ -267,16 +336,36 @@ document.addEventListener('keydown',e=>{
   else if(e.key.toLowerCase()==='f'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
   else if(e.key==='Escape'){ov.classList.remove('show');}
 });
+// A click advances; selecting text (drag, double- or triple-click, shift-click) does not.
+// The first click of a double-click has already advanced: when the second click selects text
+// (Chrome selects the nearest word, even beside it) that advance is undone, so it is net zero;
+// only where nothing gets selected does the second click advance again.
+let downX=0,downY=0,clickUndo=null;
+document.addEventListener('mousedown',e=>{downX=e.clientX;downY=e.clientY;});
 document.addEventListener('click',e=>{
+  if(e.detail===1) clickUndo=null;
   if(e.target.closest('#nav,#dots,#overview,#notes,#back,.btn,button,a,input,select,textarea,[data-noadvance],[data-goto]')) return;
-  advance();
+  if(Math.hypot(e.clientX-downX,e.clientY-downY)>4) return;
+  const sel=window.getSelection&&window.getSelection(), selected=sel&&!sel.isCollapsed&&String(sel).trim();
+  if(e.detail===2&&selected){ if(clickUndo){ const u=clickUndo; clickUndo=null; back(); backStack=u; updateBack(); } return; }
+  if(e.detail>2||selected) return;
+  const at=cur+':'+(slides[cur]._p||0), stack=backStack.slice(); advance();
+  if(e.detail===1&&at!==cur+':'+(slides[cur]._p||0)) clickUndo=stack;
 });
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('.copybtn'); if(!b) return;
   const host=b.closest('[data-copy]'); if(!host) return;
   if(navigator.clipboard) navigator.clipboard.writeText(host.getAttribute('data-copy')).catch(()=>{});
   const o=b.textContent; b.textContent='✓'; setTimeout(()=>b.textContent=o,1000); });
 let tsx=0; addEventListener('touchstart',e=>tsx=e.touches[0].clientX,{passive:true});
-addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tsx; if(Math.abs(dx)>50){dx<0?advance():back();}},{passive:true});
+addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tsx; if(Math.abs(dx)>50){hintAway();dx<0?advance():back();}},{passive:true});
+
+/* ----- key hint: visible on load (a published copy still teaches the keys), fades after the
+   first navigation key or click and stays hidden; ? or H toggles it back ----- */
+const hintEl=document.getElementById('hint'), NAV_KEYS=['ArrowRight','ArrowLeft','PageDown','PageUp',' ','Backspace'];
+function hintAway(){ if(hintEl) hintEl.classList.add('away'); }
+document.addEventListener('keydown',e=>{ if(NAV_KEYS.includes(e.key)) hintAway();
+  else if((e.key==='?'||e.key.toLowerCase()==='h')&&hintEl) hintEl.classList.toggle('away'); },true);
+document.addEventListener('click',hintAway,true);
 
 /* ----- drill-down navigation ----- */
 let backStack=[], _keepStack=false;
@@ -290,6 +379,131 @@ function drillBack(){ if(!backStack.length) return false; const i=backStack.pop(
 backEl.onclick=drillBack;
 document.addEventListener('click',e=>{ const g=e.target.closest&&e.target.closest('[data-goto]'); if(!g) return; e.stopPropagation(); goToId(g.getAttribute('data-goto')); });
 document.addEventListener('keydown',e=>{ if(e.key==='Backspace'){ if(drillBack()) e.preventDefault(); } });
+
+/* ----- spotlight (BUILD_GUIDE "Spotlight") -----
+   A marker <i class="spot step" data-spot="SEL"> is lit while its bucket is the LAST bucket
+   revealed on the active slide, whatever brought you there (→, ←, a jump, ‹ back). Geometry is
+   in canvas px (like rectOf), computed on activation (double rAF + 400 ms), resize, image load
+   and font load, never on a step: a step only toggles opacity. Markers that share a bucket share
+   one veil (one mask, several holes), so nothing is dimmed twice. */
+const SVGNS='http://www.w3.org/2000/svg', SPOT_POS=['above','below','right','left'], SPOT_TONES=['en','sa','bo','gr'],
+      SPOT_LANES=['top','bottom'];
+function svgEl(tag,attrs,parent){ const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); parent.appendChild(e); return e; }
+function spotErr(slide,m,msg){ console.error('kit spotlight ['+(slide.dataset.title||'slide')+'] data-spot="'+m.dataset.spot+'": '+msg); }
+function spotInit(slide,si){
+  const marks=[...slide.querySelectorAll('.spot[data-spot]')]; if(!marks.length) return;
+  slide.classList.add('has-spot');
+  const bs=buckets(slide), groups={}, items=[], ah='kit-spot-ah-'+si;
+  const title=slide.querySelector('h1.title,h2.title,.stitle');      /* context: kept bright */
+  const svg=svgEl('svg',{class:'spot-layer',viewBox:'0 0 1280 720',preserveAspectRatio:'none','aria-hidden':'true'},slide);
+  const defs=svgEl('defs',{},svg);
+  svgEl('path',{class:'spot-ah',d:'M0,0 L7,3.2 L0,6.4 Z'},
+    svgEl('marker',{id:ah,markerWidth:9,markerHeight:9,refX:6.5,refY:3.2,orient:'auto',markerUnits:'userSpaceOnUse'},defs));
+  marks.forEach(m=>{
+    const d=m.dataset, b=bs.findIndex(g=>g.els.includes(m));
+    if(b<0){ spotErr(slide,m,'marker needs class "step" (otherwise it is never revealed)'); return; }
+    let el=null; try{ el=slide.querySelector(d.spot); }catch(e){}
+    if(!el){ spotErr(slide,m,'no element on this slide matches'); return; }
+    const frac=d.spotRect==null?null:d.spotRect.split(',').map(Number);
+    if(frac&&(frac.length!==4||frac.some(v=>!isFinite(v)))){ spotErr(slide,m,'data-spot-rect must be "x,y,w,h" (fractions of the target)'); return; }
+    if(d.captionPos&&!SPOT_POS.includes(d.captionPos)) spotErr(slide,m,'data-caption-pos must be '+SPOT_POS.join(' | '));
+    if(d.captionLane!=null&&!SPOT_LANES.includes(d.captionLane)) spotErr(slide,m,'data-caption-lane must be '+SPOT_LANES.join(' | '));
+    if(d.tone&&!SPOT_TONES.includes(d.tone)) spotErr(slide,m,'data-tone must be '+SPOT_TONES.join(' | '));
+    if(d.pad!=null&&!isFinite(parseFloat(d.pad))) spotErr(slide,m,'data-pad must be a number (canvas px)');
+    if(d.ring!=null&&d.ring!=='none') spotErr(slide,m,'data-ring must be none (or left out)');
+    const bare=d.ring==='none', tag=d.spot+(frac?' @'+d.spotRect:'');   /* bare: hole only, no ring */
+    if(bare&&d.caption) spotErr(slide,m,'data-caption is ignored with data-ring="none"');
+    let G=groups[b];
+    if(!G){ const mid='kit-spot-m-'+si+'-'+b;
+      const mask=svgEl('mask',{id:mid,maskUnits:'userSpaceOnUse',x:0,y:0,width:1280,height:720},defs);
+      svgEl('rect',{width:1280,height:720,fill:'#fff'},mask);        /* mask luminance: white = veiled */
+      const g=svgEl('g',{class:'spot-g'},svg);
+      svgEl('rect',{class:'spot-veil',width:1280,height:720,mask:'url(#'+mid+')'},g);
+      G=groups[b]={b,g,mask,caps:[]};
+      if(title) G.thole=svgEl('path',{fill:'#000',class:'spot-title-hole'},mask); }
+    if(d.veilTitle!=null&&G.thole){ G.thole.remove(); G.thole=null; }   /* opt-out: whiten the title too */
+    const tone=SPOT_TONES.includes(d.tone)?'var(--'+d.tone+')':'';
+    const it={m,el,frac,pad:isFinite(parseFloat(d.pad))?parseFloat(d.pad):8,
+      hole:svgEl('path',{fill:'#000','data-for':tag},G.mask)};        /* black = the lit hole */
+    if(bare){ it.hole.setAttribute('data-ring','none'); items.push(it); return; }
+    it.ring=svgEl('path',{class:'spot-ring','data-for':tag},G.g);
+    if(tone) it.ring.style.setProperty('--spot-c',tone);
+    if(d.caption){                                                    /* author's text only, never HTML */
+      it.lead=svgEl('path',{class:'spot-lead','marker-end':'url(#'+ah+')'},G.g);
+      it.cap=document.createElement('div'); it.cap.className='spot-cap'; it.cap.textContent=d.caption;
+      if(tone) it.cap.style.setProperty('--spot-c',tone);
+      slide.appendChild(it.cap); G.caps.push(it.cap); }
+    items.push(it); });
+  slide._spot={items,groups:Object.values(groups),title};
+  slide.addEventListener('load',e=>{ if(e.target.tagName==='IMG'&&slide.classList.contains('active')) spotLayout(slide); },true);
+}
+function spotBox(slide,el){   /* el in canvas px; an <img> with object-fit contain/scale-down -> the drawn picture */
+  const sr=slide.getBoundingClientRect(), r=el.getBoundingClientRect(), kx=STAGE_W/sr.width, ky=STAGE_H/sr.height;
+  const b={x:(r.left-sr.left)*kx, y:(r.top-sr.top)*ky, w:r.width*kx, h:r.height*ky};
+  if(el.tagName!=='IMG'||!el.naturalWidth) return b;
+  const cs=getComputedStyle(el); if(cs.objectFit!=='contain'&&cs.objectFit!=='scale-down') return b;
+  const u=b.w/(el.offsetWidth||b.w), px=n=>parseFloat(cs[n])*u;   /* canvas px per CSS px of the img */
+  const cx=b.x+px('borderLeftWidth')+px('paddingLeft'), cy=b.y+px('borderTopWidth')+px('paddingTop');
+  const cw=b.w-px('borderLeftWidth')-px('paddingLeft')-px('borderRightWidth')-px('paddingRight');
+  const ch=b.h-px('borderTopWidth')-px('paddingTop')-px('borderBottomWidth')-px('paddingBottom');
+  let s=Math.min(cw/el.naturalWidth,ch/el.naturalHeight); if(cs.objectFit==='scale-down') s=Math.min(s,u);
+  const dw=el.naturalWidth*s, dh=el.naturalHeight*s, pos=cs.objectPosition.split(' ');
+  const off=(v,free)=>(v||'50%').endsWith('%')?parseFloat(v||'50')/100*free:parseFloat(v)*u;
+  return {x:cx+off(pos[0],cw-dw), y:cy+off(pos[1],ch-dh), w:dw, h:dh};
+}
+function spotRR(x,y,w,h,r){ r=Math.max(0,Math.min(r,w/2,h/2)); const f=v=>v.toFixed(1), a='A'+f(r)+','+f(r)+' 0 0 1 ';
+  return 'M'+f(x+r)+','+f(y)+'H'+f(x+w-r)+a+f(x+w)+','+f(y+r)+'V'+f(y+h-r)+a+f(x+w-r)+','+f(y+h)+
+         'H'+f(x+r)+a+f(x)+','+f(y+h-r)+'V'+f(y+r)+a+f(x+r)+','+f(y)+'Z'; }
+function spotLayout(slide){
+  const sp=slide&&slide._spot; if(!sp||!slide.getBoundingClientRect().width) return;
+  sp.items.forEach(it=>{
+    let b=spotBox(slide,it.el); const f=it.frac, p=it.pad;
+    if(f) b={x:b.x+f[0]*b.w, y:b.y+f[1]*b.h, w:f[2]*b.w, h:f[3]*b.h};
+    /* hole = target + pad, inside the canvas; the pad never pushes it into the logo band */
+    const H={l:Math.max(4,b.x-p), t:Math.max(4,b.y-p), r:Math.min(1276,b.x+b.w+p),
+             b:Math.min(716,b.y+b.h+p,Math.max(616,b.y+b.h))};
+    /* corner radius 8; a ring-less hole uses min(8, pad), so pad 0 cuts the exact box */
+    const d=spotRR(H.l,H.t,H.r-H.l,H.b-H.t,it.ring?8:Math.min(8,p));
+    it.hole.setAttribute('d',d); if(it.ring) it.ring.setAttribute('d',d);
+    if(it.cap) spotCaption(it,H); });
+  if(sp.title){   /* the title's text box (+6/+4 px) is a hole in every veil that has not opted out */
+    const sr=slide.getBoundingClientRect(), rg=document.createRange(); rg.selectNodeContents(sp.title);
+    const r=rg.getBoundingClientRect(), kx=STAGE_W/sr.width, ky=STAGE_H/sr.height;
+    const d=r.width?spotRR((r.left-sr.left)*kx-6,(r.top-sr.top)*ky-4,r.width*kx+12,r.height*ky+8,0):'';
+    sp.groups.forEach(G=>{ if(G.thole) G.thole.setAttribute('d',d); }); }
+}
+function spotCaption(it,H){   /* caption inside x 16..1264, y 16..612; leader from its edge to the ring */
+  const c=it.cap, cw=c.offsetWidth, ch=c.offsetHeight, GAP=30, X0=16, X1=1264, Y0=16, Y1=612;
+  const cl=(v,a,b)=>Math.max(a,Math.min(b,v)), mx=(H.l+H.r)/2, my=(H.t+H.b)/2;
+  const at={above:[mx-cw/2,H.t-GAP-ch], below:[mx-cw/2,H.b+GAP], right:[H.r+GAP,my-ch/2], left:[H.l-GAP-cw,my-ch/2]};
+  const fits={above:at.above[1]>=Y0, below:at.below[1]+ch<=Y1, right:at.right[0]+cw<=X1, left:at.left[0]>=X0};
+  /* the asked side when it fits, else the first side that fits (above, below, right, left) */
+  const want=SPOT_POS.includes(it.m.dataset.captionPos)?it.m.dataset.captionPos:null;
+  let pos=want&&fits[want]?want:(SPOT_POS.find(k=>fits[k])||want||'above');
+  let x=cl(at[pos][0],X0,X1-cw), y=cl(at[pos][1],Y0,Y1-ch);
+  const lane=it.m.dataset.captionLane;
+  if(SPOT_LANES.includes(lane)){   /* a fixed band: top y 16 (above the title), bottom ending at y 612 */
+    x=cl(mx-cw/2,X0,X1-cw); y=lane==='top'?Y0:Y1-ch;
+    pos=y+ch<=H.t?'above':(y>=H.b?'below':'above'); }
+  c.style.left=x.toFixed(1)+'px'; c.style.top=y.toFixed(1)+'px';
+  let x1,y1,x2,y2,len;
+  if(pos==='above'||pos==='below'){ x1=cl(mx,x+14,x+cw-14); x2=cl(x1,H.l+10,H.r-10);
+    y1=pos==='above'?y+ch:y; y2=pos==='above'?H.t-3:H.b+3; len=pos==='above'?y2-y1:y1-y2; }
+  else { y1=cl(my,y+8,y+ch-8); y2=cl(y1,H.t+10,H.b-10);
+    x1=pos==='right'?x:x+cw; x2=pos==='right'?H.r+3:H.l-3; len=pos==='right'?x1-x2:x2-x1; }
+  /* no leader when a clamped caption leaves no room for one */
+  it.lead.setAttribute('d',len<12?'':'M'+x1.toFixed(1)+','+y1.toFixed(1)+' L'+x2.toFixed(1)+','+y2.toFixed(1));
+}
+function spotSync(slide,off){ const sp=slide&&slide._spot; if(!sp) return;
+  const lit=off?-1:(slide._p||0)-1;
+  sp.groups.forEach(G=>{ const on=G.b===lit; G.g.classList.toggle('on',on); G.caps.forEach(c=>c.classList.toggle('on',on)); }); }
+function spotSchedule(slide){ if(!slide._spot) return;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>spotLayout(slide))); setTimeout(()=>spotLayout(slide),400); }
+slides.forEach(spotInit);
+barInit();
+addEventListener('resize',()=>spotLayout(slides[cur]));
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>spotLayout(slides[cur]));
 
 go(0,false);
 </script>

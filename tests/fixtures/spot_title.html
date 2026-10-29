@@ -1,0 +1,10 @@
+<!-- Synthetic fixture: the slide title stays bright under a spotlight unless a marker opts out.
+     Buckets: 1 spot .t (title is a hole in the veil: its pixels equal the entry frame)
+       | 2 spot .t with data-veil-title (no title hole: the title is whitened). -->
+<section class="slide stl" data-title="Title stays">
+  <h2 class="title">Title stays</h2>
+  <style>.stl .t{position:absolute;left:300px;top:300px;width:300px;height:120px;background:#dde}</style>
+  <div class="t">T</div>
+  <i class="spot step" data-spot=".stl .t"></i>
+  <i class="spot step" data-spot=".stl .t" data-veil-title></i>
+</section>

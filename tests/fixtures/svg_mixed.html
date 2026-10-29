@@ -1,0 +1,12 @@
+<!-- Fixture: SVG children that have no getScreenCTM or are not rendered, which crashed the
+     --check small-text pass (2026-10-29): an SVG <title> and <desc>, and HTML (<div>, <span>)
+     inside a <foreignObject>. The HTML is 16 px at scale 1 (/2 via the viewBox: 8 px); the SVG
+     <text> is 24 px at the same scale (12 px). Expected: --check runs with no real errors and
+     passes; small_text lists exactly the foreignObject span, px 8. -->
+<section class="slide sx" data-section="1" data-title="SVG mixed"><h2 class="title">SVG mixed</h2>
+  <style>.sx svg{position:absolute;left:100px;top:200px;width:400px;height:200px}.sx .fo{font-size:16px}</style>
+  <svg viewBox="0 0 800 400"><title>chart title (tooltip only)</title><desc>a description</desc>
+    <text x="10" y="40" font-size="24">twelve</text>
+    <foreignObject x="10" y="100" width="600" height="100"><div xmlns="http://www.w3.org/1999/xhtml"><span class="fo">eight</span></div></foreignObject>
+  </svg>
+</section>

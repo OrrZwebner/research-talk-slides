@@ -1,0 +1,8 @@
+<!-- Fixture: a box that overflows only in a viewport at least 1900 px wide (a media query reads
+     the real viewport, as a fragment's vw-based rule would). At 1280x720 the check passes; the
+     default extra pass at 1906x1000 finds one overflow, so the check fails, exit 1. -->
+<section class="slide bw" data-section="1" data-title="Wide"><h2 class="title">Wide</h2>
+  <style>.bw .b{position:absolute;left:100px;top:200px;width:400px;border:2px solid #333;font-size:24px;white-space:nowrap}
+  @media (min-width:1900px){ .bw .b{width:60px} }</style>
+  <div class="b">only wide screens</div>
+</section>

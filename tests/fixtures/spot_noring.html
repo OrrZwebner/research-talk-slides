@@ -1,0 +1,22 @@
+<!-- Synthetic fixture for data-ring="none". Absolute boxes give known canvas geometry:
+       .cols  100,200 600x200 (context that must stay bright)   .dot  800,260 40x40
+       .other 900,450 200x80 (must stay veiled)
+     Buckets (DOM order): 1 spot .dot pad 6 (ringed) + spot .cols pad 0 data-ring="none", one veil
+       -> holes 794,254 52x52 and 100,200 600x200; exactly one ring (.dot); no leader, no caption
+       | 2 box .c appears -> nothing lit. -->
+<section class="slide snr" data-title="Ring-less hole">
+  <h2 class="title">Ring-less hole</h2>
+  <style>
+  .snr .cols,.snr .dot,.snr .other,.snr .c{position:absolute}
+  .snr .cols{left:100px;top:200px;width:600px;height:200px;background:#3b7dd8}
+  .snr .dot{left:800px;top:260px;width:40px;height:40px;border-radius:50%;background:#e8833a}
+  .snr .other{left:900px;top:450px;width:200px;height:80px;background:#5a8f69}
+  .snr .c{left:100px;top:450px;width:200px;height:80px;background:#eed}
+  </style>
+  <div class="cols"></div>
+  <div class="dot"></div>
+  <div class="other"></div>
+  <i class="spot step" data-step="1" data-spot=".snr .dot" data-pad="6"></i>
+  <i class="spot step" data-step="1" data-spot=".snr .cols" data-pad="0" data-ring="none"></i>
+  <div class="c step" data-step="2">C</div>
+</section>

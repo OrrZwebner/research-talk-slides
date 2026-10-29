@@ -1,0 +1,4 @@
+# Fixture: talk order for --order (paths relative to this file)
+one_slide.html   # one slide
+
+clean.html

@@ -1,0 +1,14 @@
+<!-- Fixture: target .t at canvas (500,300,200,100), default pad 8 -> ring (492,292,216,116).
+     Step 1: caption in the top lane -> its top at canvas y 16, centred on x 600, leader from the
+     caption's bottom edge down to the ring's top (y 292-3 = 289).
+     Step 2: caption in the bottom lane -> its bottom at canvas y 612, centred on x 600, leader
+     from its top edge up to the ring's bottom (y 408+3 = 411). The subtitle (y 120-150) that a
+     plain "above" caption (ring top 292 - gap 30) would not touch is irrelevant here: the lanes
+     are fixed bands. -->
+<section class="slide sln" data-section="1" data-title="Lanes">
+  <h2 class="title">Caption lanes</h2>
+  <style>.sln .t{position:absolute;left:500px;top:300px;width:200px;height:100px;background:#cde}</style>
+  <div class="t"></div>
+  <i class="spot step" data-step="1" data-spot=".sln .t" data-caption="top lane" data-caption-lane="top"></i>
+  <i class="spot step" data-step="2" data-spot=".sln .t" data-caption="bottom lane" data-caption-lane="bottom"></i>
+</section>

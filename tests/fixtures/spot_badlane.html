@@ -1,0 +1,9 @@
+<!-- Fixture: a spotlight marker with data-caption-lane="middle" (only top | bottom exist).
+     Expected: assemble warns once naming ".sbl .t (data-caption-lane="middle")"; shot.py reports
+     one real error "data-caption-lane must be top | bottom". -->
+<section class="slide sbl" data-section="1" data-title="Bad lane">
+  <h2 class="title">Bad lane</h2>
+  <style>.sbl .t{position:absolute;left:500px;top:300px;width:200px;height:100px;background:#cde}</style>
+  <div class="t"></div>
+  <i class="spot step" data-spot=".sbl .t" data-caption="c" data-caption-lane="middle"></i>
+</section>

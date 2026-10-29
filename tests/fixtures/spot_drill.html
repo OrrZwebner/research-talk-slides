@@ -1,0 +1,20 @@
+<!-- Synthetic fixture: drill-down with spotlights on the hub and on the detail slide.
+     Hub buckets: 1 component A (data-goto) | 2 spot on A | 3 component B.
+     Expected with "2 --click [data-goto=sdd] --then right --click #back --then left --then left":
+       hub step 2 lit [.sd1 .ca]; the click lands on A through the veil; detail entry [];
+       detail step 1 lit [.sd2 .box]; '‹ back' -> hub fully revealed, step 3, [] (no stale spot);
+       left -> step 2 lit [.sd1 .ca] again; left -> step 1, []. -->
+<section class="slide sd1" data-title="Hub" data-id="sdh">
+  <h2 class="title">Hub</h2>
+  <style>.sd1 .ca,.sd1 .cb{position:absolute;top:250px;width:260px;height:140px;background:#dde}
+  .sd1 .ca{left:150px} .sd1 .cb{left:600px}</style>
+  <div class="ca step" data-step="1" data-goto="sdd">A</div>
+  <i class="spot step" data-step="2" data-spot=".sd1 .ca"></i>
+  <div class="cb step" data-step="3">B</div>
+</section>
+<section class="slide sd2" data-title="Detail" data-id="sdd">
+  <h2 class="title">Detail</h2>
+  <style>.sd2 .box{position:absolute;left:300px;top:260px;width:400px;height:150px;background:#ede}</style>
+  <div class="box">D</div>
+  <i class="spot step" data-spot=".sd2 .box" data-caption="detail caption"></i>
+</section>

@@ -1,0 +1,10 @@
+<!-- Synthetic fixture: slide 1 ends on a spotlight bucket, slide 2 has none. Expected with
+     "1 --then right --then left --then left": slide 1 step 1 lit [.n]; slide 2 (no spot key);
+     back on slide 1 fully revealed: step 1 lit [.n] (the state left); one more left: step 0, []. -->
+<section class="slide sn1" data-title="Ends on a spot">
+  <h2 class="title">Ends on a spot</h2>
+  <style>.sn1 .n{position:absolute;left:200px;top:250px;width:300px;height:120px;background:#dde}</style>
+  <div class="n">N</div>
+  <i class="spot step" data-spot=".n"></i>
+</section>
+<section class="slide sn2" data-title="Plain"><h2 class="title">Plain</h2></section>

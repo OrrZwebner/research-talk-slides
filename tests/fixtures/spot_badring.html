@@ -1,0 +1,11 @@
+<!-- Synthetic fixture: data-ring="no" is not a valid value, and data-ring="none" with a caption
+     conflicts. Expected: assemble.py gives 1 warning naming ".t" and ".u"; at run time the kit
+     logs 2 console errors (one per marker), so shot.py exits 1 with 2 real errors. -->
+<section class="slide sbr" data-title="Bad ring">
+  <h2 class="title">Bad ring</h2>
+  <style>.sbr .t,.sbr .u{position:absolute;top:250px;width:200px;height:100px;background:#dde}
+  .sbr .t{left:150px} .sbr .u{left:500px}</style>
+  <div class="t">T</div><div class="u">U</div>
+  <i class="spot step" data-step="1" data-spot=".sbr .t" data-ring="no"></i>
+  <i class="spot step" data-step="1" data-spot=".sbr .u" data-ring="none" data-caption="x"></i>
+</section>

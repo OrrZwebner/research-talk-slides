@@ -1,0 +1,10 @@
+<!-- Synthetic fixture for assemble.py: .p lacks class step, .q lacks class spot, ".row > .r" is a
+     valid marker whose selector contains '>' but whose data-spot-rect has two numbers.
+     Expected: exactly 2 warnings, one naming ".p, .q", one naming "0.5,0.5". The marker in
+     this comment <i class="spot" data-spot=".z"></i> must be ignored. -->
+<section class="slide sli"><h2 class="title">Lint</h2>
+  <div class="row"><div class="p">P</div><div class="q">Q</div><div class="r">R</div></div>
+  <i class="spot" data-spot=".p"></i>
+  <i class="step" data-spot=".q"></i>
+  <i class="spot step" data-spot=".row > .r" data-spot-rect="0.5,0.5"></i>
+</section>

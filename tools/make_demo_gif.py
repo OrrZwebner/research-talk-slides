@@ -62,7 +62,7 @@ def main():
         gif_deck.write_text(deck.read_text(encoding='utf-8').replace('</head>', HIDE_HINT + '</head>', 1),
                             encoding='utf-8')
         r = subprocess.run([sys.executable, str(SKILL / 'scripts' / 'shot.py'), str(gif_deck),
-                            str(pathlib.Path(td) / 'f'), '9', '--wait', '1500', '--check'] + SEQUENCE,
+                            str(pathlib.Path(td) / 'f'), '9', '--wait', '1500', '--check', '--check-size', 'none'] + SEQUENCE,
                            capture_output=True, text=True)
         if r.returncode != 0:
             sys.exit(r.stdout + r.stderr)

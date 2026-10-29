@@ -1,0 +1,11 @@
+<!-- Fixture for --asset-base: five relative assets/ URLs (src, ./ href, CSS url(), two srcset
+     entries). Not rewritten: an absolute http URL, a data-x attribute, text "assets/" in a <p>.
+     Expected with --asset-base ../..: asset_rewrites 5. -->
+<section class="slide as" data-section="1" data-title="Assets">
+  <style>.as .b{background:url(assets/c.png)}</style>
+  <img alt="" src="assets/a.png">
+  <link rel="stylesheet" href='./assets/b.css'>
+  <img alt="" srcset="assets/d.png 1x, assets/e.png 2x">
+  <img alt="" src="http://example.org/assets/f.png" data-x="assets/g.png">
+  <p>see assets/ folder</p>
+</section>

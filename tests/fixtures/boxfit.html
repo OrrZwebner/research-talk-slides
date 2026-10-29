@@ -1,0 +1,10 @@
+<!-- Fixture for the --check box fit: .bad is a bordered 120 px box holding a nowrap line of
+     about 400 px (overflows on the right); .ok is a bordered 400 px box with a short word.
+     Expected: exactly one overflow entry, its text "overflowing label that runs", in the
+     main pass and at the 1906x1000 pass; check fails, exit 1. -->
+<section class="slide bf" data-section="1" data-title="Box fit"><h2 class="title">Box fit</h2>
+  <style>.bf .bad,.bf .ok{position:absolute;left:100px;border:2px solid #333;font-size:24px;white-space:nowrap}
+  .bf .bad{top:200px;width:120px}.bf .ok{top:300px;width:400px}</style>
+  <div class="bad">overflowing label that runs</div>
+  <div class="ok">fits</div>
+</section>
