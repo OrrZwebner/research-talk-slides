@@ -406,6 +406,18 @@ When more than one top-level session works on the same talk:
 - Other sessions send cross-section edits to the owner as proposals, never edit them directly.
 - Each PRD.md entry records the session that took it down.
 - After each merge, re-stitch and re-verify the deck.
+- Builders and verifiers check a **fresh assembly** (`assemble.py` of the current `00-master` +
+  the fragments under test into scratch), never the last stitched deck: it predates every edit
+  since the stitch, so it shows stale styles and passes or fails the wrong thing.
+- Before taking over a slide, ask its owner session what is in flight; before an author's new
+  notes reach a slide another builder holds, route them to that builder, not around it.
+- A builder that stopped mid-task (usage limit, crash) can leave the generator edited but the
+  fragment not regenerated: run each generator into scratch and `cmp` with `fragments/` to see
+  exactly what landed, then brief a new builder with that state.
+- Git in a shared working tree: commit only your own paths (`git commit --only -- <paths>`),
+  never `git add -A`; other sessions' staged files stay out. Before any push, check
+  `git log origin/main..HEAD`: a push carries every local commit, including other sessions',
+  so each one needs its author's approval.
 
 ## 8. Generated fragments
 
@@ -424,6 +436,11 @@ generator is the source; the fragment is output.
 - Parallel builders on one section share `build/NN/common.py` (colours, sizes, drawing
   helpers), and deck-wide components (readouts, forward-pass drawing) live in one shared module
   imported by every generator (§3, one visual language).
+- **Changing a shared module** (one slide needs a new layout): add the new behaviour behind an
+  opt-in argument whose default is the old behaviour (e.g. `dot_layout='stack'|'rowcol'`), pass
+  it only from the slide that needs it, then regenerate **every** user into scratch and `cmp` each
+  with its installed fragment; all must be byte-identical before handing over. Some generators
+  import siblings and fail under `python3 -I`; run those from their own folder.
 
 ## 9. Patterns
 
