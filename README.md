@@ -53,6 +53,25 @@ flow and facts after building, plus a compliance mode that maps every author req
 slide). They keep the talk record in `PRD.md` (the author's words), `SPEC.md` (storyboards)
 and `TBD.md` (open questions).
 
+## What's new in 1.2.0
+
+- **Kit** (opt-in): backup slides that open only on a click (`data-offpath`); animation on slide entry (`data-autoplay`,
+  speed via `--anim-speed`); click toggles (`data-toggle`); hide or replace an element at a
+  later step (`data-hide-at`, `.swap`); a topic overview (`data-topic`, `ov-topics`); a prompt
+  box (`.pbox`); a `below-title` spotlight caption lane; an `.illus` tag with a deck-wide
+  `no-illus` switch. Always on: a replay guard, so stepping back no longer replays animations.
+- **shot.py**: `--load-timeout`, `--frames` for looping slides, `--start-id` / `--start-title`,
+  a machine-wide Chromium slot lock (`SLIDES_SHOT_SLOTS`), a JS click fallback for SVG targets,
+  a failed-asset warning, and a `data-small-ok` opt-out.
+- **assemble.py**: `--check-assets`, size lints, lints that skip `<script>` bodies, backup
+  slides exempt from the section lint, and refused calls that no longer leave a stale deck.
+- **anim.py** (new): `transfer()` animates a value moving from A to B; `label_clear()` asserts
+  label clearance.
+- **Docs and agents**: new content rules (no internal shorthand, numbers on the drawing,
+  mechanism over metric, formulas term by term), illustrative values declared in the notes,
+  orchestration for a whole talk (intake ledger, stitch lock, deadline freeze), a fold
+  transition recipe, a publish size budget, and a migration guide for older decks.
+
 ## What's new in 1.1.0
 
 - **Kit**: built-in figure spotlight; optional running slide numbers and a step-aware progress

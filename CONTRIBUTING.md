@@ -2,15 +2,21 @@
 
 ## Layout rules
 - `skills/research-talk-slides/SKILL.md` loads on **every** invocation. Keep it procedures and
-  hard rules, under ~500 lines (currently ~200); details belong in `references/`, which load
-  only when needed.
+  hard rules, at most 200 lines; new rules go in `references/` (which load only when needed),
+  and SKILL.md gets a one-line pointer.
+- Every `§N` reference must resolve to a heading in BUILD_GUIDE.md, and the do-not-regress rows
+  (BUILD_GUIDE §11) stay numbered contiguously; append new rows at the end.
 - SKILL.md frontmatter may contain only `name`, `description`, `license`, `compatibility`,
   `metadata`, `allowed-tools`. Any other key makes claude.ai uploads and packaging fail. Keep
   `description` ≤ 1024 characters.
 - `skills/` is auto-discovered; do not list it in `plugin.json` or the marketplace entry.
 - Scripts: Python ≥ 3.8, stdlib only (Playwright is the one optional dependency, imported
   lazily), JSON on stdout, `--help` documenting every option, exit 0 pass / 1 fail / 2
-  dependency missing.
+  dependency missing. `scripts/anim.py` is a library: its docstring examples are its CLI check
+  (`python3 anim.py`, run by CI).
+- New kit features are opt-in (an attribute or a body class) and must not change a deck that
+  does not use them; `test_deck_without_new_attributes_matches_v110` pins this against the
+  1.1.0 kit.
 - No personal or institutional material: examples use synthetic content only, and the kit
   ships with empty logo slots.
 
@@ -20,7 +26,11 @@ with Playwright + Chromium installed, on Python 3.9 and 3.12:
 
 ```bash
 python3 -m unittest discover -s tests -v     # shot.py tests skip if Playwright is absent
+python3 skills/research-talk-slides/scripts/anim.py   # anim.py docstring examples
 ```
+
+`shot.py` limits itself to `SLIDES_SHOT_SLOTS` parallel Chromium runs per machine (default 2);
+the slot tests set their own `SLIDES_SHOT_LOCK_DIR`, so they do not wait on other runs.
 
 The fixtures in `tests/fixtures/` are synthetic, and every expected value is fixed by how the
 fixture was built (stated in its header comment), not recorded from script output. Never update an
