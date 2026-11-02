@@ -441,31 +441,76 @@ class TestKitV12(unittest.TestCase):
     CLIP = {'x': 0, 'y': 4, 'width': 1230, 'height': 640}
     BOX = "s => { const r=document.querySelector(s).getBoundingClientRect(); return [r.left,r.top,r.width,r.height]; }"
 
+    # Frame comparison with a tolerance (exact PNG bytes differ across machines: antialiasing, font
+    # rasterising, composited layers). Both PNGs are decoded in a blank page's <canvas> (no Pillow).
+    # mad  = mean |a-b| over all RGB values (0-255);
+    # pale = the largest rise in mean brightness of any 32x32 block from `ref` to `img`.
+    # A pale frame (cross-fade over white) brightens the dark blocks by tens of levels; rasterising
+    # noise moves single edge pixels, which a 32x32 block mean dilutes to well under 1 level.
+    DIFF_JS = """async ([a, b]) => {
+      const load = u => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = u; });
+      const px = async u => { const i = await load(u), c = document.createElement('canvas'); c.width = i.width; c.height = i.height;
+        const x = c.getContext('2d'); x.drawImage(i, 0, 0); return [x.getImageData(0, 0, i.width, i.height).data, i.width, i.height]; };
+      const [A, w, h] = await px(a), [B] = await px(b);
+      let sum = 0, pale = 0;
+      for (let k = 0; k < A.length; k += 4) sum += Math.abs(A[k]-B[k]) + Math.abs(A[k+1]-B[k+1]) + Math.abs(A[k+2]-B[k+2]);
+      for (let by = 0; by + 32 <= h; by += 32) for (let bx = 0; bx + 32 <= w; bx += 32) {
+        let d = 0;
+        for (let y = by; y < by + 32; y++) for (let x = bx; x < bx + 32; x++) { const k = (y*w + x)*4;
+          d += (B[k]+B[k+1]+B[k+2]) - (A[k]+A[k+1]+A[k+2]); }
+        pale = Math.max(pale, d / (32*32*3)); }
+      return [sum / (w*h*3), pale]; }"""
+    MAD_MAX, PALE_MAX = 1.5, 6.0
+
+    def diff(self, ref, img):
+        import base64
+        if not hasattr(self, '_dp'):
+            self._dp = self.browser.new_page()
+            self.pages.append(self._dp)
+        u = lambda b: 'data:image/png;base64,' + base64.b64encode(b).decode()
+        return self._dp.evaluate(self.DIFF_JS, [u(ref), u(img)])
+
+    def assertSameFrame(self, ref, img, what):
+        mad, pale = self.diff(ref, img)
+        self.assertLess(mad, self.MAD_MAX, '%s: mean abs diff %.2f' % (what, mad))
+        self.assertLess(pale, self.PALE_MAX, '%s: a 32x32 block is %.1f levels paler' % (what, pale))
+
+    @staticmethod
+    def settle(pg):
+        # no finite animation or transition still running, then two frames
+        pg.wait_for_function("""() => document.getAnimations().every(a => a.playState !== 'running' ||
+            !isFinite(a.effect.getComputedTiming().endTime))""", timeout=5000)
+        pg.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+
     def seam(self, frag, a_steps, shared_a, shared_b, pale_css):
         pg = self.page(self.deck(frag))
         self.key(pg, 'ArrowRight', a_steps, wait=900)           # A at its final frame
         self.assertEqual(self.state(pg), (1, a_steps))
+        self.settle(pg)
         end, box_a = pg.screenshot(clip=self.CLIP), pg.evaluate(self.BOX, shared_a)
         pg.keyboard.press('ArrowRight')
         cut = pg.screenshot(clip=self.CLIP)                      # the frame just after the cut
         self.assertEqual(self.state(pg), (2, 0))
-        self.assertTrue(cut == end, 'frame after the cut differs from A\'s final frame (pale or changed)')
+        self.assertSameFrame(end, cut, "frame after the cut vs A's final frame")
         box_b = pg.evaluate(self.BOX, shared_b)
         for u, v in zip(box_a, box_b):
             self.assertAlmostEqual(u, v, delta=2)
-        pg.wait_for_timeout(700)
-        self.assertTrue(pg.screenshot(clip=self.CLIP) == end, "B's settled entry differs from A's final frame")
+        self.settle(pg)
+        self.assertSameFrame(end, pg.screenshot(clip=self.CLIP), "B's settled entry vs A's final frame")
         pg.keyboard.press('ArrowLeft')
         back = pg.screenshot(clip=self.CLIP)                     # replay guard: A's end state at once
         self.assertEqual(self.state(pg), (1, a_steps))
-        self.assertTrue(back == end, '<- from B did not restore A\'s final frame')
-        # control: with the kit's cross-fade left on, the same sample catches the pale frame
+        self.assertSameFrame(end, back, "<- from B vs A's final frame")
+        # control: with the kit's cross-fade left on, the same sample must fail the same check
         ctl = self.page(self.deck(frag))
         ctl.add_style_tag(content=pale_css)
         self.key(ctl, 'ArrowRight', a_steps, wait=900)
+        self.settle(ctl)
         end2 = ctl.screenshot(clip=self.CLIP)
         ctl.keyboard.press('ArrowRight')
-        self.assertFalse(ctl.screenshot(clip=self.CLIP) == end2, 'control: cross-fade not detected')
+        mad, pale = self.diff(end2, ctl.screenshot(clip=self.CLIP))
+        self.assertGreaterEqual(pale, self.PALE_MAX, 'control: cross-fade not detected (pale %.1f, mad %.2f)' % (pale, mad))
+        self.seam_stats = (self.diff(end, cut), (mad, pale))
         return pg
 
     def test_zoom_pair_seam(self):
