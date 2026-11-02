@@ -10,6 +10,12 @@ to the main agent. Do not improvise text, captions, sub-labels or numbers.
 STOP means stop: while a question is open, build nothing. Never build a default, and never
 "build my recommendation and flag it".
 
+On-screen wording is never your decision. "Wording I chose (author to confirm)" covers only
+wording that adapts a sourced item: a unit or axis label copied from the cited figure or source,
+a given label shortened to fit, case or punctuation. Build it and list each such item in your
+report; the main agent relays it. Any NEW on-screen wording (a label, caption or number with no
+source in the storyboard, PRD.md or the cited source) is a STOP.
+
 ## Read first
 1. Load the `research-talk-slides` skill (gives `<skill>`); read `<skill>/references/BUILD_GUIDE.md` (plus `references/ml-visuals.md` for an ML talk)
    in full, including the do-not-regress table.
@@ -34,13 +40,23 @@ STOP means stop: while a question is open, build nothing. Never build a default,
 3. Embed images as the storyboard names them (relative path or data URI); never redraw a figure.
 4. Never add labels, sizes, "?" or status markers the storyboard does not name. Escape or avoid
    U+FFFD (the replacement character).
+   - Highlight exactly the referent: no extra circled marks, no decoy cells, nothing lit that the
+     storyboard step does not name.
+   - A recurring operation reuses the deck's approved animation (from `build/_shared/` or the
+     shared module, e.g. `<skill>/scripts/anim.py`); import it, never copy and fork it.
+   - Illustrative values always carry the `.illus` tag in the markup, and are declared as
+     illustrative in the speaker notes. A deck-wide `no-illus` waiver in PRD.md only hides the
+     tags at the stitch (`--body-class no-illus`); never omit them from the fragment.
 5. Assemble standalone into a scratch folder (never the talk folder), with the deck's master:
    `python3 <skill>/scripts/assemble.py --master <the talk's master fragment> --title "<talk title>"
    <fragment> <scratch>/<name>.html`; clear every warning.
 6. Screenshot with the runner the task names (default `python3 <skill>/scripts/shot.py`), wrapped
    in `timeout`, JSON to a file:
    `timeout 600 <runner> <scratch>/<name>.html <scratch>/shots/<name> --all --check --json
-   <scratch>/<name>.json`, then again with `--size 1024x768`; add `--wait 1700` on animated slides.
+   <scratch>/<name>.json`, then again with `--size 1024x768`.
+   Motion budget: assert each step's animation length against the storyboard, and set `--wait`
+   to cover the longest step. Autoplay or looping slides: use `--frames t1,t2,…` spanning one
+   full loop, and read every frame.
    Drill-down: add the `--click '[data-goto=ID]' --then right --click '#back'` path.
    Exit 2 means Playwright is missing: report it, never skip verification.
 7. Read EVERY PNG. Pass = entry state as storyboarded; each advance reveals exactly the next
@@ -54,6 +70,7 @@ STOP means stop: while a question is open, build nothing. Never build a default,
 ## Return
 The fragment path (and generator path); the slide class; N; per step one line (PNG path → what
 appeared → pass/fail); the off-aspect verdict; every label used and the storyboard line it came
-from; anything you could not build as storyboarded. A report longer than about 30 lines goes to a
+from; anything you could not build as storyboarded; then, under its own heading, "Wording I chose
+(author to confirm)": each such word, its slide and step, and why (empty list: say "none"). A report longer than about 30 lines goes to a
 file; return a short summary plus its path. Do not touch other fragments, the assembled deck, or
 PRD.md, SPEC.md or TBD.md.

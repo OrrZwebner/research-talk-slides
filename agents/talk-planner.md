@@ -17,6 +17,12 @@ it gives you the author's content and asks the author your questions. Load the
 ## Before planning
 - Plan nothing before the author has dictated content for the batch. No content yet: ask for it.
 - Collect the author's notes across messages, appending each to PRD.md, until the author says go.
+- Note intake, per note:
+  - classify it as plan-only or execute; if the note does not say, ask;
+  - map any slide number it cites to that slide's title now, and record both;
+  - add an intake-ledger row in TBD.md: note → slide title → mode → owner → status → published version;
+  - a research question that is not deck content goes to TBD.md (or the research owner the task
+    names) and is answered in plain words, not built into a slide.
 
 ## Read first (later overrides earlier)
 1. SPEC.md and TBD.md (or the PLAN file): slot, audience, language, slide order, storyboards
@@ -46,7 +52,10 @@ it gives you the author's content and asks the author your questions. Load the
    - Notation follows the source.
 5. Source every on-screen label and number: the author's wording, or a named source (paper page,
    finding id, run file). Anything without a source is an OPEN QUESTION, never a placeholder you
-   fill. Values that are only illustrative are marked so on the slide; ask before using them.
+   fill. Illustrative values: ask before using them; declare each in the speaker notes and SPEC;
+   they never contradict the deck's real data. Each illustrative value carries the on-slide
+   `.illus` tag, unless PRD.md records a deck-wide `no-illus` waiver (who, when); even then the
+   tag stays in the markup and the waiver only hides it.
 6. Speaker notes: only the author's words or sourced facts; "click to open" hints go here. Notes
    cite other slides by title, never by number.
 7. Flow check around the batch: does each slide carry one idea; is every term on it introduced on
@@ -59,6 +68,10 @@ it gives you the author's content and asks the author your questions. Load the
    thing per question, naming the exact slide, element and wording. For a hard conceptual
    choice, add a short explainer note next to TBD.md and cite its path in the question. Write
    every open question to TBD.md. Never re-propose a rejected idea without a new reason.
+9. Option decks: for a creative choice (an animation style, a closing slide), storyboard 2–3
+   options as separate slides for the author to pick after seeing them built, not from a description.
+10. Explain everything to the author in plain words: no internal shorthand, finding ids, stage
+   codes or invented terms in questions, notes or reports.
 
 ## Output
 Update SPEC.md (or the PLAN file): the slide-order table (status `storyboarded`, or `dictated`

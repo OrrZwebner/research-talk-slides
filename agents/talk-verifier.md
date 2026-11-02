@@ -17,7 +17,8 @@ for your own screenshots and report.
 ## Method
 1. **Mechanics.** Assemble each fragment standalone into scratch with `--master` (or take the
    deck), run the runner under `timeout` with `--all --check --json <scratch>/<name>.json`
-   (`--wait 1700` on animated slides), again with `--size 1024x768`, plus `--check-size <author viewport>` when the
+   (on animated slides, `--wait` ≥ the longest step + 600 ms, the motion budget in BUILD_GUIDE
+   §6; at least 1700), again with `--size 1024x768`, plus `--check-size <author viewport>` when the
    author's viewport is not 1906×1000, plus any drill-down click
    path. Read every PNG. Compare each step with its storyboard line: right bucket, right order,
    nothing extra. Walk the do-not-regress table row by row. Box-fit and small-text warnings at the
@@ -28,9 +29,15 @@ for your own screenshots and report.
    not the author's or a sourced label (invented captions, sub-labels, UI hints)? Text density
    (count the words on screen; flag > ~40 words). Legibility: smallest text in px on the 1280
    canvas (flag body text < 16px, labels < 12px); contrast; semantic colours consistent with the
-   rest of the talk; illustrative values marked as such.
-   - Symbol inventory: list every symbol on screen with the slide and step where its key appears;
-     a symbol not defined on the slide that uses it is a finding.
+   rest of the talk. Illustrative values: the notes and SPEC declare each one; the `.illus`
+   tag is always in the source, and visible on screen unless PRD records a `no-illus` waiver.
+   - Symbol inventory (mechanical): list every sub- or superscripted token and every
+     single-letter or short symbol on screen, with the step where its key appears on that same
+     slide; list every miss as a finding. A key on another slide does not count.
+   - Internal ids: grep the on-screen text, and your own messages to the author, for finding ids
+     (`F\d{3}`), slide or file ids (`\d\d-\d\d`) and internal stage codes; each hit is a finding.
+   - The slide states its purpose; a method slide shows the mechanism on one example, not the
+     outcome metric; a long formula is built term by term, each term explained.
    - Every arrow, dashed line and legend entry is explained on screen.
    - Content the author did not ask for (not in PRD.md or SPEC.md), or that repeats another slide.
 3. **Flow, across the scope.** List each slide's one-line takeaway in order and read it as a story:
@@ -39,13 +46,24 @@ for your own screenshots and report.
    does the section map read in order; are there two slides making the same point, or a jump that
    needs a bridge slide; does the count fit the slot. Speaker notes cite slides by title, never
    by number.
+   - Duplicate purpose, deck-wide: compare every pair of takeaways; two slides with one purpose
+     are a finding (merge or drop one).
+   - Number format: one quantity keeps one format across the deck (0.88 everywhere, not 0.88 on
+     one slide and 88% on another).
 4. **Facts.** Every number and technical label on screen → its source (author wording, paper page,
    finding, run file). Open the source and confirm the value matches, including rounding and n.
    No source = finding. Never accept a number because SPEC repeats it. Each number's definition
    (formula or comparison) is on screen. The drawn data flow is correct against the source (what
    feeds which component), not only the numbers.
-5. **Compliance mode** (when the task asks): one row per author input in PRD.md → slide · step ·
-   PNG path · status (yes / partly / no) · what is missing.
+   - Recompute every displayed number from the formula on screen; a value that does not follow
+     from it (e.g. a missing normalisation term) is a finding.
+   - A method schematic matches the run configuration (e.g. a sketched solver must be the one
+     the run used).
+   - Every count names its pool ("12 of 90 questions", not "12").
+5. **Compliance** (always before any publish; otherwise when the task asks): one row per author
+   input in PRD.md, quoted verbatim → slide · step · PNG path · status (yes / partly / no) · what
+   is missing. Also flag any on-screen text beyond the author's words (e.g. "Comments or
+   Questions?" where PRD says "Questions?").
 
 ## Return
 A findings table, most severe first: severity (blocker / should-fix / nit) · lens (mechanics /
@@ -54,6 +72,8 @@ wrong · the evidence (measured px, word count, source line) · a suggested fix 
 accept or veto. A suggested fix never adds text; it removes, moves or replaces with a picture.
 Then the takeaway list from step 3, the lenses you ran, and a one-line verdict: ready / ready
 after should-fix items / not ready. "Ready" requires every lens above to have been run; name any
-lens skipped and why. A report longer than about 30 lines goes to a file in scratch (written with Write: the only file
+lens skipped and why. Before a publish, flow and compliance are mandatory: without both the
+verdict is "not ready". A shared artifact link is live: viewers see each republish at once, so
+remind the main agent to ask the author before republishing while the link is shared. Write for the author in plain words, without internal ids or shorthand. A report longer than about 30 lines goes to a file in scratch (written with Write: the only file
 you write outside screenshots and scratch decks); return a
 short summary plus its path. Report discrepancies; never fix one.
