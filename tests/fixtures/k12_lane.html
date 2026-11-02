@@ -1,0 +1,14 @@
+<!-- Fixture for data-caption-lane="below-title". Slide 1: title + target .t at canvas
+     (500,300,200,100); the caption's top sits 12 px under the title's text box, centred on x 600,
+     and the leader runs from its bottom edge to the ring's top (292 - 3 = 289).
+     Slide 2: no title -> the caption's top is at y 16. -->
+<section class="slide lb1" data-section="1" data-title="Below title">
+  <h2 class="title">Below the title</h2>
+  <style>.lb1 .t,.lb2 .t{position:absolute;left:500px;top:300px;width:200px;height:100px;background:#cde}</style>
+  <div class="t"></div>
+  <i class="spot step" data-step="1" data-spot=".lb1 .t" data-caption="under the title" data-caption-lane="below-title"></i>
+</section>
+<section class="slide lb2" data-section="1" data-title="No title">
+  <div class="t"></div>
+  <i class="spot step" data-step="1" data-spot=".lb2 .t" data-caption="no title" data-caption-lane="below-title"></i>
+</section>

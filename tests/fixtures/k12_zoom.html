@@ -1,0 +1,28 @@
+<!-- Fixture for BUILD_GUIDE §9.1 (zoom pair). Synthetic drawing: four blocks .b1-.b4 (180x120,
+     left 140 + 260*i, top 260) inside a 1000x400 wrapper at canvas (140,200).
+     Slide A (zA, data-id "zoomA"): one step, the label .zl on block 2. A's final frame = blocks + label.
+     Slide B (zB, data-id "zoomB"): its entry redraws A's final frame exactly (same markup, same
+     title, the label not a step); its first step is the zoom, one transform on the wrapper .zw
+     (scale 2 about block 2's centre). No slide transition on either slide of the pair.
+     Expected: the frame just after the A->B cut equals A's final frame; block 2's box is the same
+     on A's end and B's entry; <- from B's entry shows A's final frame again. -->
+<style>
+.slide.zA,.slide.zB{transition:none}
+.zA .zw,.zB .zw{position:absolute;left:140px;top:200px;width:1000px;height:400px;transform-origin:350px 120px;
+  transition:transform .6s ease}
+.zA .blk,.zB .blk{position:absolute;top:60px;width:180px;height:120px;border-radius:10px;background:#1b2a4a}
+.zA .b1,.zB .b1{left:0}.zA .b2,.zB .b2{left:260px;background:#3b7dd8}.zA .b3,.zB .b3{left:520px}.zA .b4,.zB .b4{left:780px}
+.zA .zl,.zB .zl{position:absolute;left:260px;top:200px;width:180px;font:600 20px/1.2 var(--display);text-align:center;color:#1a1a1a}
+.zB:has(.zstep.shown) .zw{transform:scale(2)}
+</style>
+<section class="slide zA" data-section="1" data-title="Zoom A" data-id="zoomA">
+  <h2 class="title">A pipeline</h2>
+  <div class="zw"><div class="blk b1"></div><div class="blk b2"></div><div class="blk b3"></div><div class="blk b4"></div>
+    <div class="zl step">stage two</div></div>
+</section>
+<section class="slide zB" data-section="1" data-title="Zoom B" data-id="zoomB">
+  <h2 class="title">A pipeline</h2>
+  <div class="zw"><div class="blk b1"></div><div class="blk b2"></div><div class="blk b3"></div><div class="blk b4"></div>
+    <div class="zl">stage two</div></div>
+  <i class="zstep step" data-step="zoom"></i>
+</section>

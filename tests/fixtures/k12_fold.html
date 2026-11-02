@@ -1,0 +1,32 @@
+<!-- Fixture for BUILD_GUIDE §9.3 (fold / shrink morph). Synthetic five-block pipeline, blocks
+     160x90 with gaps 30 (920x90), drawn once by one markup inside the wrapper .fw at canvas (100,300).
+     Slide A (fA, data-id "foldA"): step 1 shows the A-only note .fn; step "fold" (an empty marker)
+     folds .fw with transform translate(-36px,-160px) scale(.25) (origin 0 0) -> the mini copy at
+     canvas (64,140), 230x22.5, and hides .fn in the same step (data-hide-at="fold").
+     Slide B (fB, data-id "foldB"): entry = A's final frame (same title, the mini copy at the same
+     transform, nothing else new); step 1 brings B's own box .fx.
+     No slide transition on either slide. Expected: the frame just after the A->B cut equals A's
+     final frame; the mini block 3 has the same box on A's end and B's entry; <- from B's entry
+     shows A folded, one more <- unfolds it (identity transform). -->
+<style>
+.slide.fA,.slide.fB{transition:none}
+.fA .fw,.fB .fw{position:absolute;left:100px;top:300px;width:920px;height:90px;transform-origin:0 0;
+  transition:transform .6s ease}
+.fA .fb,.fB .fb{position:absolute;top:0;width:160px;height:90px;border-radius:8px;background:#5a8f69}
+.fA .k1,.fB .k1{left:0}.fA .k2,.fB .k2{left:190px}.fA .k3,.fB .k3{left:380px;background:#e8833a}
+.fA .k4,.fB .k4{left:570px}.fA .k5,.fB .k5{left:760px}
+.fA:has(.fmark.shown) .fw,.fB .fw{transform:translate(-36px,-160px) scale(.25)}
+.fA .fn{position:absolute;left:100px;top:450px;font:400 22px var(--display)}
+.fB .fx{position:absolute;left:400px;top:300px;width:300px;height:120px;border:3px solid #1b2a4a;border-radius:10px}
+</style>
+<section class="slide fA" data-section="1" data-title="Fold A" data-id="foldA">
+  <h2 class="title">Folding the model</h2>
+  <div class="fw"><div class="fb k1"></div><div class="fb k2"></div><div class="fb k3"></div><div class="fb k4"></div><div class="fb k5"></div></div>
+  <p class="fn step" data-step="1" data-hide-at="fold">the full model, five blocks</p>
+  <i class="fmark step" data-step="fold"></i>
+</section>
+<section class="slide fB" data-section="1" data-title="Fold B" data-id="foldB">
+  <h2 class="title">Folding the model</h2>
+  <div class="fw"><div class="fb k1"></div><div class="fb k2"></div><div class="fb k3"></div><div class="fb k4"></div><div class="fb k5"></div></div>
+  <div class="fx step"></div>
+</section>

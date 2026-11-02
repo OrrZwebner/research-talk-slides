@@ -1,0 +1,16 @@
+<!-- Fixture for data-autoplay and --anim-speed. Slide 1: nothing. Slide 2: .ap-loop (infinite,
+     calc(2s / var(--anim-speed)) -> 2s by default) and .ap-once (finite 3s), both data-autoplay,
+     animated only while they carry class "playing". Slide 3 is itself data-autoplay. -->
+<section class="slide ap1" data-section="1" data-title="Before"><h2 class="title">Before</h2></section>
+<section class="slide ap2" data-section="1" data-title="Autoplay">
+  <style>
+  @keyframes ap-move{from{transform:translateX(0)}to{transform:translateX(300px)}}
+  .ap2 .ap-loop,.ap2 .ap-once{width:40px;height:40px;background:#3b7dd8}
+  .ap2 .ap-loop.playing{animation:ap-move calc(2s / var(--anim-speed)) linear infinite}
+  .ap2 .ap-once.playing{animation:ap-move 3s linear forwards}
+  </style>
+  <h2 class="title">Autoplay</h2>
+  <div class="ap-loop" data-autoplay></div>
+  <div class="ap-once" data-autoplay></div>
+</section>
+<section class="slide ap3" data-section="1" data-title="Self" data-autoplay><h2 class="title">Self</h2></section>

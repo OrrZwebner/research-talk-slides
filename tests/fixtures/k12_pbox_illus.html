@@ -1,0 +1,11 @@
+<!-- Fixture for .pbox and .illus. .p1 default accent (--en #1b2a4a), .p2 .bo (#e8833a),
+     .p3 inline --accent #123456; .pbox-h is 16 px. Two .illus tags (HTML span, SVG text) and one
+     plain span: body.no-illus hides exactly the two .illus. -->
+<section class="slide pi1" data-section="1" data-title="Prompt box">
+  <h2 class="title">Prompt box</h2>
+  <div class="pbox p1"><div class="pbox-h">input prompt</div>Question: what is 2 + 2?</div>
+  <div class="pbox bo p2">orange edge</div>
+  <div class="pbox p3" style="--accent:#123456">custom edge</div>
+  <span class="illus">illustrative</span><span class="plain">real</span>
+  <svg width="200" height="40"><text class="illus" x="0" y="20">illustrative</text></svg>
+</section>

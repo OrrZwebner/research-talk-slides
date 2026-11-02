@@ -1,0 +1,24 @@
+<!-- Fixture for data-offpath (backup slides). DOM order (1-based) and reveal buckets:
+     1 t  "Title"   0 steps            on path
+     2 h1 "Hub one" 1 step; a link to bk (not a step, so clickable on entry)
+     3 bk "Backup"  data-offpath data-id="bk", 2 steps
+     4 m  "Middle"  0 steps
+     5 h2 "Hub two" 1 step; links to bk and bk2
+     6 bk2 "Backup two" data-offpath data-id="bk2", 0 steps
+     7 e  "End"     0 steps
+     On-path slides 1,2,4,5,7: buckets 0,1,0,1,0 -> bar total 2 + 5 = 7, positions /6:
+     t 0; h1 1,2; m 3; h2 4,5; e 6. Numbers: t none, h1 2, m 3, h2 4, e 5; none on bk / bk2.
+     Linear walk (slide,_p): (1,0) (2,0) (2,1) (4,0) (5,0) (5,1) (7,0), then stays. -->
+<section class="slide op1" data-section="Title" data-title="Title"><h1 class="title">Title</h1></section>
+<section class="slide op2" data-section="1" data-title="Hub one"><h2 class="title">Hub one</h2>
+  <div class="lk" data-goto="bk" style="width:200px;height:60px;background:#cde">open backup</div>
+  <p class="step">h1 step</p></section>
+<section class="slide op3" data-section="1" data-title="Backup" data-id="bk" data-offpath><h2 class="title">Backup</h2>
+  <p class="step">b1</p><p class="step">b2</p></section>
+<section class="slide op4" data-section="1" data-title="Middle"><h2 class="title">Middle</h2></section>
+<section class="slide op5" data-section="2" data-title="Hub two"><h2 class="title">Hub two</h2>
+  <div class="lk" data-goto="bk" style="width:200px;height:60px;background:#cde">open backup</div>
+  <div class="lk2" data-goto="bk2" style="width:200px;height:60px;background:#dec">open backup two</div>
+  <p class="step">h2 step</p></section>
+<section class="slide op6" data-section="2" data-title="Backup two" data-id="bk2" data-offpath><h2 class="title">Backup two</h2></section>
+<section class="slide op7" data-section="2" data-title="End"><h2 class="title">End</h2></section>

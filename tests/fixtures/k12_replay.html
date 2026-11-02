@@ -1,0 +1,27 @@
+<!-- Fixture for the replay guard. Slide 1: one step .rp-bar whose 3 s finite animation starts when it
+     is shown, an infinite spinner .rp-spin (not a step), and a plain fading step .rp-fade.
+     Slide 2: a non-step .rp-entry with a 3 s finite animation that runs on every entry.
+     Arriving on slide 1 with ← (all steps shown) must show end states at once: the bar's animation
+     finished, the fade step at opacity 1, the spinner still running. Arriving forward on slide 2
+     (no step shown) must leave its entry animation running. -->
+<section class="slide rp1" data-section="1" data-title="Replay">
+  <style>
+  @keyframes rp-grow{from{width:0}to{width:400px}}
+  @keyframes rp-turn{to{transform:rotate(360deg)}}
+  .rp1 .rp-bar{height:20px;background:#3b7dd8;width:0}
+  .rp1 .rp-bar.shown{animation:rp-grow 3s linear forwards}
+  .rp1 .rp-spin{width:30px;height:30px;background:#e8833a;animation:rp-turn 2s linear infinite}
+  </style>
+  <h2 class="title">Replay</h2>
+  <div class="rp-spin"></div>
+  <div class="rp-bar step"></div>
+  <p class="rp-fade step">fade</p>
+</section>
+<section class="slide rp2" data-section="1" data-title="Entry">
+  <style>
+  @keyframes rp-in{from{opacity:.2}to{opacity:1}}
+  .rp2.active .rp-entry{animation:rp-in 3s linear}
+  </style>
+  <h2 class="title">Entry</h2>
+  <div class="rp-entry">entry</div>
+</section>

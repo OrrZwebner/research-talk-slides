@@ -1,0 +1,17 @@
+<!-- Fixture for data-toggle. Slide 1 (class "tg1 dflt"): two steps; a <button class="tgb"
+     data-toggle="alt"> at canvas (100,300), a <span class="tgs" data-toggle="b2"> at (400,300)
+     and a <div class="tgd" data-toggle="dflt"> at (700,300) that toggles a class the slide
+     already has. None of them advances. Slide 2: plain. -->
+<section class="slide tg1 dflt" data-section="1" data-title="Toggle">
+  <style>
+  .tg1 .tgb,.tg1 .tgs,.tg1 .tgd{position:absolute;top:300px;width:160px;height:50px;background:#eef2fb;border:1px solid #999}
+  .tg1 .tgb{left:100px} .tg1 .tgs{left:400px} .tg1 .tgd{left:700px}
+  .tg1 .tg-steps{position:absolute;top:450px;left:100px}
+  </style>
+  <h2 class="title">Toggle</h2>
+  <button class="tgb" data-toggle="alt">alt</button>
+  <span class="tgs" data-toggle="b2">b2</span>
+  <div class="tgd" data-toggle="dflt">dflt</div>
+  <div class="tg-steps"><p class="step">s1</p><p class="step">s2</p></div>
+</section>
+<section class="slide tg2" data-section="1" data-title="After"><h2 class="title">After</h2></section>

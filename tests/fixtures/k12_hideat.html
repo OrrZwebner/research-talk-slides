@@ -1,0 +1,19 @@
+<!-- Fixture for data-hide-at. Slide 1, keyed buckets "1","2","3" (in this DOM order: .c, .b, .e):
+       .a  data-hide-at="2" (not a step)     visible at p 0,1; hidden at p 2,3
+       .b  step data-step="2"                 shown at p 2,3 (.a and .b share one .swap cell)
+       .c  step data-step="1" data-hide-at="3" shown at p 1,2; hidden at p 3
+       .e  step data-step="3"                 shown at p 3
+     Slide 2, three un-keyed steps; .g data-hide-at="2" (no such key -> the 2nd reveal):
+       visible at p 0,1; hidden at p 2,3. -->
+<section class="slide ha1" data-section="1" data-title="Hide at key">
+  <style>.ha1 .swap{position:absolute;left:200px;top:250px}.ha1 .a,.ha1 .b{width:300px;height:80px}</style>
+  <h2 class="title">Hide at key</h2>
+  <p class="c step" data-step="1" data-hide-at="3">C</p>
+  <div class="swap"><div class="a" data-hide-at="2">A</div><div class="b step" data-step="2">B</div></div>
+  <p class="e step" data-step="3">E</p>
+</section>
+<section class="slide ha2" data-section="1" data-title="Hide at count">
+  <h2 class="title">Hide at count</h2>
+  <p class="g" data-hide-at="2">G</p>
+  <p class="step">1</p><p class="step">2</p><p class="step">3</p>
+</section>

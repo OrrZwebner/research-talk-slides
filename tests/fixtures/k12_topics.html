@@ -1,0 +1,19 @@
+<!-- Fixture for data-topic / body.ov-topics. Slides (section, topic, title):
+     1 Title      -          Title             -> topic "Title" (first slide)
+     2 1 · Intro  Motivation Why               -> topic "Motivation"
+     3 1 · Intro  -          More why
+     4 1 · Intro  Data       Dataset           -> topic "Data"
+     5 2 · Method -          Method overview   -> topic "Method overview" (section change)
+     6 2 · Method -          Backup            data-offpath: not counted, no tile
+     7 2 · Method -          Method detail
+     ov-topics: [Title: Title (1 slide)] [1 · Intro: Motivation (2 slides), Data (1 slide)]
+                [2 · Method: Method overview (2 slides)].
+     Default overview: 6 tiles (all but the backup). -->
+<section class="slide tp1" data-section="Title" data-title="Title"><h1 class="title">Title</h1></section>
+<section class="slide tp2" data-section="1 · Intro" data-topic="Motivation" data-title="Why"><h2 class="title">Why</h2></section>
+<section class="slide tp3" data-section="1 · Intro" data-title="More why"><h2 class="title">More why</h2></section>
+<section class="slide tp4" data-section="1 · Intro" data-topic="Data" data-title="Dataset"><h2 class="title">Dataset</h2></section>
+<section class="slide tp5" data-section="2 · Method" data-title="Method overview"><h2 class="title">Method overview</h2></section>
+<section class="slide tp6" data-section="2 · Method" data-title="Backup" data-id="tpb" data-offpath><h2 class="title">Backup</h2></section>
+<section class="slide tp7" data-section="2 · Method" data-title="Method detail"><h2 class="title">Method detail</h2>
+  <div data-goto="tpb">more</div></section>
