@@ -1,0 +1,11 @@
+<!-- Fixture (v1.2) for data-small-ok: three 9 px texts. .t1 carries data-small-ok="tick labels"
+     itself; .t2 sits in an SVG whose <g> carries data-small-ok="axis units"; .t3 has no opt-out.
+     Expected: small_text = [plain] only; small_ok = tick (tick labels), unit (axis units);
+     the check passes; check.small_ok lists the same two. -->
+<section class="slide sk" data-title="Small ok">
+  <h2 class="title">Small ok</h2>
+  <style>.sk div{position:absolute;font-size:9px}.sk svg{position:absolute;left:600px;top:200px;width:400px;height:200px}</style>
+  <div class="t1" style="left:100px;top:200px" data-small-ok="tick labels">tick</div>
+  <svg viewBox="0 0 400 200"><g data-small-ok="axis units"><text class="t2" x="10" y="50" font-size="9">unit</text></g></svg>
+  <div class="t3" style="left:100px;top:300px">plain</div>
+</section>

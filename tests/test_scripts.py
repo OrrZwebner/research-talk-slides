@@ -205,7 +205,7 @@ class TestAssemble(unittest.TestCase):
     def test_bad_caption_lane_warns(self):
         code, j = assemble(FIX / 'spot_badlane.html', self.tmp / 'o.html')
         self.assertEqual(code, 0)
-        self.assertEqual(j['warnings'], ['data-caption-lane takes only "top" or "bottom": '
+        self.assertEqual(j['warnings'], ['data-caption-lane takes only "top", "bottom" or "below-title": '
                                          '.sbl .t (data-caption-lane="middle")'])
 
     def test_good_caption_lane_no_warning(self):

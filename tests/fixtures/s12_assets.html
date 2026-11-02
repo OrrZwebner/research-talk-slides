@@ -1,0 +1,16 @@
+<!-- Fixture (v1.2) for --check-assets. Relative URLs: assets/logo.svg (img src; the test creates
+     it next to OUT), assets/missing.woff2 (CSS url()), assets/a%20b.png (src, URL-encoded name;
+     created as "a b.png"), img/one.png and img/two.png (srcset; only one.png is created), and
+     paper.pdf (a href; missing). Skipped: https://, data:, #anchor, an absolute /path, and the
+     string 'assets/js-only.png' inside a <script>. Expected: "relative": 6, "missing" =
+     [assets/missing.woff2, img/two.png, paper.pdf] in document order. -->
+<section class="slide sa1" data-title="Assets">
+  <style>@font-face{font-family:Fx;src:url('assets/missing.woff2') format('woff2')}
+  .sa1 .bg{background:url(data:image/png;base64,iVBORw0KGgo=)}</style>
+  <img src="assets/logo.svg" alt="">
+  <img src="assets/a%20b.png" alt="">
+  <img srcset="img/one.png 1x, img/two.png 2x" alt="">
+  <a href="paper.pdf">paper</a> <a href="#top">top</a> <a href="https://example.org/x.png">web</a>
+  <img src="/abs/path.png" alt="">
+  <script>const u = 'assets/js-only.png'; const s = '<img src="assets/js-only.png">';</script>
+</section>

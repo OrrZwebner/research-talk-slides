@@ -1,0 +1,13 @@
+<!-- Fixture (v1.2): JS text that spells markup must not trip the markup lints. The <script>
+     builds strings with data-goto="nowhere", id="twice" (twice) and a slide <section>, and sets a
+     50vw width. Markup: data-goto="hubx" resolves to data-id="hubx". Expected: exactly one
+     warning, the viewport unit 50vw (a script that sets a vw width does use one); "slides": 1. -->
+<section class="slide sx1" data-id="hubx" data-title="Hub">
+  <h2 class="title">Hub</h2>
+  <div data-goto="hubx">self</div>
+  <script>
+    const help = 'data-goto targets: <b data-goto="nowhere">x</b> <i id="twice"></i><i id="twice"></i>';
+    const tpl = '<section class="slide made-in-js">';
+    document.currentScript.closest('.slide').querySelector('div').style.width = '50vw';
+  </script>
+</section>

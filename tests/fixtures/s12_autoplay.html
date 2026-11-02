@@ -1,0 +1,10 @@
+<!-- Fixture (v1.2) for --frames: on entry a 40x40 square moves from x=100 to x=1100 over
+     2000 ms (linear, then stays). Plain CSS on .slide.active, no kit option needed.
+     Expected: frames at 0 and 3000 ms differ (the square moved); 3000 ms equals the end state. -->
+<section class="slide ap" data-title="Autoplay">
+  <h2 class="title">Autoplay</h2>
+  <style>.ap .sq{position:absolute;left:100px;top:300px;width:40px;height:40px;background:#c33}
+  .ap.active .sq{animation:ap-move 2s linear forwards}
+  @keyframes ap-move{from{transform:translateX(0)}to{transform:translateX(1000px)}}</style>
+  <div class="sq"></div>
+</section>

@@ -1,0 +1,11 @@
+<!-- Fixture (v1.2) for --start-id / --start-title. Document order: 1 "Intro"; 2 "Backup"
+     (data-offpath, data-id="bk"); 3 "Target" (data-id="tgt", on-screen number 2); 4 and 5 both
+     titled "Twin". Expected entry slide (1-based document position): --start-id tgt -> 3;
+     --start-title Target -> 3; --start 3 -> 3; --start-id bk -> 2; --start-id nope -> exit 1
+     "no slide with data-id"; --start-title Twin -> exit 1 "2 slides"; --start-id bk with
+     --start-title Target -> exit 1 "different slides". -->
+<section class="slide st1" data-title="Intro"><h2 class="title">Intro</h2></section>
+<section class="slide st1" data-title="Backup" data-id="bk" data-offpath><h2 class="title">Backup</h2></section>
+<section class="slide st1" data-title="Target" data-id="tgt"><h2 class="title">Target</h2></section>
+<section class="slide st1" data-title="Twin"><h2 class="title">Twin A</h2></section>
+<section class="slide st1" data-title="Twin"><h2 class="title">Twin B</h2></section>

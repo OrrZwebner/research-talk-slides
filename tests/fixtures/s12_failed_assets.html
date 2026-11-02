@@ -1,0 +1,12 @@
+<!-- Fixture (v1.2) for the failed-asset warning: an <img> and a @font-face (used by .fx) point
+     at files that do not exist; a data: image loads. Expected: exit 0, two "failed_assets"
+     entries (types image and font), a stderr WARNING; real_errors []. -->
+<section class="slide fa" data-title="Assets">
+  <h2 class="title">Assets</h2>
+  <style>@font-face{font-family:S12Missing;src:url('no-such-dir/missing.woff2') format('woff2')}
+  .fa .fx{position:absolute;left:100px;top:200px;font-family:S12Missing,sans-serif;font-size:30px}
+  .fa img{position:absolute;left:100px;top:300px;width:100px;height:60px}</style>
+  <div class="fx">font</div>
+  <img src="no-such-dir/missing.png" alt="">
+  <img style="left:300px" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="">
+</section>

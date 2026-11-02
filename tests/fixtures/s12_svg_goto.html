@@ -1,0 +1,19 @@
+<!-- Fixture (v1.2) for the --click fallback. Hub (slide 1): #hitg is an SVG <g data-goto> whose
+     only shape has fill:none, so a point click at its centre lands on the <svg> (an ancestor);
+     #emptyg is an empty <g data-goto> (no box: Playwright says "not visible"). Both open the
+     detail (slide 2, data-id="s12det"). #plain is an HTML button-like div that clicks normally.
+     Expected with "--click #hitg --click #back --click #emptyg --click #back --click #plain":
+     slides 2, 1, 2, 1, 2; "click" notes on shots 1 and 3 only. -->
+<section class="slide sg1" data-title="Hub">
+  <h2 class="title">Hub</h2>
+  <style>.sg1 svg{position:absolute;left:100px;top:150px;width:600px;height:300px}
+  .sg1 #plain{position:absolute;left:800px;top:200px;width:200px;height:80px;background:#dde}</style>
+  <svg viewBox="0 0 600 300">
+    <g id="hitg" data-goto="s12det"><rect x="50" y="50" width="200" height="120" fill="none" stroke="#333" stroke-width="2"/></g>
+    <g id="emptyg" data-goto="s12det"></g>
+  </svg>
+  <div id="plain" data-goto="s12det">plain</div>
+</section>
+<section class="slide sg2" data-title="Detail" data-id="s12det">
+  <h2 class="title">Detail</h2>
+</section>
